@@ -1,5 +1,5 @@
 package fr.univtln.pegliasco.tp.model;
-import jakarta.persistence.Entity;
+
 import lombok.Getter;
 import lombok.Setter;
 import jakarta.persistence.*;
@@ -8,20 +8,6 @@ import jakarta.persistence.*;
 @Getter
 @Setter
 @Entity
-public class Administrateur {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+public class Admin extends Account{
 
-    @Column
-    private String nom;
-
-    @Column
-    private String prenom;
-
-    @Column
-    private String email;
-
-    @Column
-    private String password;
 }

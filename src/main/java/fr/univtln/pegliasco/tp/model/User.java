@@ -4,25 +4,15 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.List;
+
 @Getter
 @Setter
 @Entity
-public class Utilisateur {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+public class User extends Account {
 
-    @Column
-    private String nom;
-
-    @Column
-    private String prenom;
-
-    @Column
-    private String email;
-
-    @Column
-    private String password;
+    @OneToMany(mappedBy = "user")
+    private List<Rating> ratings;
 
 
 }
