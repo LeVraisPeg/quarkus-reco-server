@@ -1,4 +1,4 @@
 package fr.univtln.pegliasco.tp.model;
-
-public class Administrateur {
+//TODO
+public class Avis {
 }
