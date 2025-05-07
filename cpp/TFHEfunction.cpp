@@ -1,14 +1,15 @@
-#include <tfhe/tfhe.h>    // Inclut les définitions et fonctions principales de la bibliothèque TFHE.
-#include <tfhe/tfhe_io.h> // Inclut les fonctions d'entrée/sortie pour manipuler les clés TFHE.
-#include <cstdlib>        // Fournit des fonctions standard pour la gestion des variables d'environnement.
-#include <cstring>        // Fournit des fonctions pour manipuler des chaînes de caractères.
-#include <cstdio>         // Fournit des fonctions pour la gestion des entrées/sorties en C, comme printf et fopen.
+#include <tfhe/tfhe.h>
+#include <tfhe/tfhe_io.h>
+#include <cstdlib>
+#include <cstring>
+#include <cstdio>
 
 extern "C"
 {
+    // Fonction de chiffrement
     void encrypt(const char *message, const char *secret_key_env, const char *cloud_key_env)
     {
-        // Récupère la clé secrète depuis les variables d'environnement.
+        // Récupère la clé secrète depuis les variables d'environnement
         const char *secret_key = std::getenv(secret_key_env);
         if (!secret_key)
         {
@@ -16,7 +17,7 @@ extern "C"
             return;
         }
 
-        // Récupère la clé cloud depuis les variables d'environnement.
+        // Récupère la clé cloud depuis les variables d'environnement
         const char *cloud_key = std::getenv(cloud_key_env);
         if (!cloud_key)
         {
@@ -24,33 +25,53 @@ extern "C"
             return;
         }
 
-        // Charge la clé secrète depuis le flux mémoire.
-        FILE *secret_mem = fmemopen((void *)secret_key, strlen(secret_key), "r");
+        // Charge la clé secrète depuis un fichier temporaire
+        FILE *secret_mem = tmpfile();
+        if (!secret_mem)
+        {
+            printf("Failed to create temporary file for secret key.\n");
+            return;
+        }
+        fwrite(secret_key, 1, strlen(secret_key), secret_mem);
+        rewind(secret_mem);
         TFheGateBootstrappingSecretKeySet *key = new_tfheGateBootstrappingSecretKeySet_fromFile(secret_mem);
         fclose(secret_mem);
 
-        // Charge la clé cloud depuis le flux mémoire.
-        FILE *cloud_mem = fmemopen((void *)cloud_key, strlen(cloud_key), "r");
+        // Charge la clé cloud depuis un fichier temporaire
+        FILE *cloud_mem = tmpfile();
+        if (!cloud_mem)
+        {
+            printf("Failed to create temporary file for cloud key.\n");
+            delete_gate_bootstrapping_secret_keyset(key);
+            return;
+        }
+        fwrite(cloud_key, 1, strlen(cloud_key), cloud_mem);
+        rewind(cloud_mem);
         TFheGateBootstrappingCloudKeySet *cloud_key_set = new_tfheGateBootstrappingCloudKeySet_fromFile(cloud_mem);
         fclose(cloud_mem);
 
-        // Crée un message chiffré à partir du message en clair.
+        // Crée un message chiffré
         LweSample *ciphertext = new_gate_bootstrapping_ciphertext(key->params);
-        bootsSymEncrypt(ciphertext, message[0], &key->lwe_key); // Chiffre le message avec la clé secrète.
+        bootsSymEncrypt(ciphertext, message[0], key);
 
-        // Affiche le message chiffré.
+        // Affiche le message chiffré
         printf("Encrypted message: ");
-        for (int i = 0; i < key->params->N; i++)
+        for (int i = 0; i < key->params->in_out_params->n; i++)
+        {
             printf("%d ", ciphertext->a[i]);
+        }
         printf("\n");
 
-        // Libère la mémoire allouée pour le message chiffré et les clés.
+        // Libère la mémoire
         delete_gate_bootstrapping_ciphertext(ciphertext);
+        delete_gate_bootstrapping_secret_keyset(key);
+        delete_gate_bootstrapping_cloud_keyset(cloud_key_set);
     }
 
+    // Fonction de déchiffrement
     void decrypt(const char *ciphertext_env, const char *secret_key_env)
     {
-        // Récupère la clé secrète depuis les variables d'environnement.
+        // Récupère la clé secrète depuis les variables d'environnement
         const char *secret_key = std::getenv(secret_key_env);
         if (!secret_key)
         {
@@ -58,31 +79,42 @@ extern "C"
             return;
         }
 
-        // Charge la clé secrète depuis le flux mémoire.
-        FILE *secret_mem = fmemopen((void *)secret_key, strlen(secret_key), "r");
+        // Charge la clé secrète depuis un fichier temporaire
+        FILE *secret_mem = tmpfile();
+        if (!secret_mem)
+        {
+            printf("Failed to create temporary file for secret key.\n");
+            return;
+        }
+        fwrite(secret_key, 1, strlen(secret_key), secret_mem);
+        rewind(secret_mem);
         TFheGateBootstrappingSecretKeySet *key = new_tfheGateBootstrappingSecretKeySet_fromFile(secret_mem);
         fclose(secret_mem);
 
-        // Récupère le message chiffré depuis les variables d'environnement.
+        // Récupère le message chiffré depuis les variables d'environnement
         const char *ciphertext_str = std::getenv(ciphertext_env);
         if (!ciphertext_str)
         {
             printf("Ciphertext not found in environment variables.\n");
+            delete_gate_bootstrapping_secret_keyset(key);
             return;
         }
 
-        // Crée un message chiffré à partir de la chaîne de caractères.
+        // Crée un message chiffré à partir de la chaîne de caractères
         LweSample *ciphertext = new_gate_bootstrapping_ciphertext(key->params);
-        for (int i = 0; i < key->params->N; i++)
-            ciphertext->a[i] = ciphertext_str[i] - '0'; // Convertit chaque caractère en entier.
+        for (int i = 0; i < key->params->in_out_params->n; i++)
+        {
+            ciphertext->a[i] = ciphertext_str[i] - '0';
+        }
 
-        // Déchiffre le message chiffré avec la clé secrète.
-        int decrypted_message = bootsSymDecrypt(ciphertext, &key->lwe_key); // Déchiffre le message.
+        // Déchiffre le message
+        int decrypted_message = bootsSymDecrypt(ciphertext, key);
 
-        // Affiche le message déchiffré.
+        // Affiche le message déchiffré
         printf("Decrypted message: %d\n", decrypted_message);
 
-        // Libère la mémoire allouée pour le message chiffré et la clé.
+        // Libère la mémoire
         delete_gate_bootstrapping_ciphertext(ciphertext);
+        delete_gate_bootstrapping_secret_keyset(key);
     }
 }

@@ -4,7 +4,6 @@
             "name": "Win32",
             "includePath": [
                 "${workspaceFolder}/**",
-                "C:/Users/enzob/Desktop/tfhe",
                 "C:/Users/enzob/Desktop"
             ],
             "defines": [
