@@ -1,6 +1,8 @@
 package fr.univtln.pegliasco.tp.controller;
 
+import fr.univtln.pegliasco.tp.model.FolderPathRequest;
 import fr.univtln.pegliasco.tp.services.CsvImporterService;
+import fr.univtln.pegliasco.tp.model.ApiResponse;
 
 import jakarta.inject.Inject;
 import jakarta.ws.rs.*;
@@ -46,32 +48,6 @@ public class ImportController {
     }
 
 
-    // Class interne pour la réponse API
-    public static class ApiResponse {
-        public String message;
 
-        public ApiResponse(String message) {
-            this.message = message;
-        }
 
-        public String getMessage() {
-            return message;
-        }
-
-        public void setMessage(String message) {
-            this.message = message;
-        }
-    }
-
-    public static class FolderPathRequest {
-        private String folderPath;
-
-        public String getFolderPath() {
-            return folderPath;
-        }
-
-        public void setFolderPath(String folderPath) {
-            this.folderPath = folderPath;
-        }
-    }
 }
