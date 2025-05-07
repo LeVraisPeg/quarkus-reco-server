@@ -9,6 +9,7 @@ import java.util.List;
 @Getter
 @Setter
 @Entity
+@Table(name = "Users")
 public class User extends Account {
 
     @OneToMany(mappedBy = "user")
