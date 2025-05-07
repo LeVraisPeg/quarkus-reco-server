@@ -1,11 +1,13 @@
 package fr.univtln.pegliasco.tp.repository;
 
+import fr.univtln.pegliasco.tp.model.Gender;
 import fr.univtln.pegliasco.tp.model.Movie;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @ApplicationScoped
@@ -20,9 +22,35 @@ public class MovieRepository {
     public Movie findById(Long id) {
         return entityManager.find(Movie.class, id);
     }
+
     public void save(Movie movie) {
-        entityManager.persist(movie);
+        if (movie.getId() == null) {
+            // Nouvelle entité, on persiste
+            entityManager.persist(movie);
+        } else {
+            movie = entityManager.merge(movie);
+        }
+
+        if (movie.getGenders() != null) {
+            List<Gender> managedGenders = new ArrayList<>();
+            for (Gender gender : movie.getGenders()) {
+                if (gender.getId() != null) {
+                    gender = entityManager.find(Gender.class, gender.getId());
+                } else {
+                    entityManager.persist(gender);
+                }
+                managedGenders.add(gender);
+            }
+            movie.setGenders(managedGenders);
+        }
     }
+
+
+
+    public void merge(Movie movie) {
+        entityManager.merge(movie);
+    }
+
     public void update(Movie movie) {
         entityManager.merge(movie);
     }
@@ -54,5 +82,29 @@ public class MovieRepository {
         return entityManager.createQuery("SELECT m FROM Movie m JOIN m.genders g WHERE g.name = :gender", Movie.class)
                 .setParameter("gender", gender)
                 .getResultList();
+    }
+
+
+    public void flushAndClear() {
+        entityManager.flush();
+        entityManager.clear();
+    }
+
+    // Vérifier si un film existe par son ID
+    public boolean existsById(Long id) {
+        return entityManager.createQuery("SELECT COUNT(m) FROM Movie m WHERE m.id = :id", Long.class)
+                .setParameter("id", id)
+                .getSingleResult() > 0;
+    }
+
+    //persister un film
+    public void persist(Movie movie) {
+        if (movie.getId() != null && entityManager.find(Movie.class, movie.getId()) != null) {
+            // Entity exists, merge it
+            entityManager.merge(movie);
+        } else {
+            // New entity, persist it
+            entityManager.persist(movie);
+        }
     }
 }

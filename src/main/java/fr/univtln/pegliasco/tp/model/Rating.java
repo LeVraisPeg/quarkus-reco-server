@@ -1,5 +1,6 @@
 package fr.univtln.pegliasco.tp.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -13,10 +14,11 @@ public class Rating {
     private Long id;
 
     @Column
-    private int rate;
+    private Float rate;
 
     @ManyToOne
-    private User user;
+    @JsonIgnore
+    private Account account;
 
     @ManyToOne
     private Movie movie;

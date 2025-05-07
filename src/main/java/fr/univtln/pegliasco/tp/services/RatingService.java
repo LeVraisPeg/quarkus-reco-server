@@ -1,6 +1,7 @@
 package fr.univtln.pegliasco.tp.services;
 
 import fr.univtln.pegliasco.tp.model.Rating;
+import fr.univtln.pegliasco.tp.model.User;
 import fr.univtln.pegliasco.tp.repository.RatingRepository;
 import jakarta.transaction.Transactional;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -16,7 +17,13 @@ public class RatingService {
 
     @Transactional
     public List<Rating> getAllRatings() {
-        return ratingRepository.findAll();
+        List<Rating> ratings = ratingRepository.findAll();
+        ratings.forEach(rating -> {
+            if (rating.getAccount() instanceof User user && user.getRatings() != null) {
+                user.getRatings().size();
+            }
+        });
+        return ratings;
     }
 
     @Transactional
@@ -54,6 +61,16 @@ public class RatingService {
         return ratingRepository.findByUserIdAndMovieId(userId, movieId);
     }
 
+
+    //save or update
+    @Transactional
+    public void saveOrUpdate(Rating rating) {
+        if (rating.getId() == null) {
+            ratingRepository.add(rating);
+        } else {
+            ratingRepository.update(rating);
+        }
+    }
 
 
 }

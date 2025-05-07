@@ -46,4 +46,16 @@ public class GenderService {
     public Gender getGenderById(Long id) {
         return genderRepository.findById(id);
     }
+
+    @Transactional
+    public Gender findOrCreateByName(String name) {
+        Gender gender = genderRepository.findByName(name);
+        if (gender == null) {
+            gender = new Gender();
+            gender.setName(name);
+            genderRepository.add(gender);
+        }
+        return gender;
+    }
+
 }

@@ -12,7 +12,7 @@ import java.util.List;
 @Table(name = "Users")
 public class User extends Account {
 
-    @OneToMany(mappedBy = "user")
+    @OneToMany(mappedBy = "account")
     private List<Rating> ratings;
 
 

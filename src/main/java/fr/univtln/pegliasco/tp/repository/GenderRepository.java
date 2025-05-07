@@ -4,6 +4,7 @@ import fr.univtln.pegliasco.tp.model.Gender;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.persistence.EntityManager;
+import jakarta.persistence.NoResultException;
 import jakarta.persistence.PersistenceContext;
 
 import java.util.List;
@@ -36,5 +37,16 @@ public class GenderRepository {
             entityManager.remove(gender);
         }
     }
+
+    public Gender findByName(String name) {
+        try {
+            return entityManager.createQuery("SELECT g FROM Gender g WHERE g.name = :name", Gender.class)
+                    .setParameter("name", name)
+                    .getSingleResult();
+        } catch (NoResultException e) {
+            return null;
+        }
+    }
+
 
 }

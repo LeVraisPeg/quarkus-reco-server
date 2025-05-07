@@ -1,5 +1,6 @@
 package fr.univtln.pegliasco.tp.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -17,6 +18,7 @@ public class Gender {
     @Column
     private String name;
 
-    @ManyToMany(mappedBy = "genders")
+    @ManyToMany(mappedBy = "genders", fetch = FetchType.EAGER)
+    @JsonIgnore
     private List<Movie> movies;
 }
