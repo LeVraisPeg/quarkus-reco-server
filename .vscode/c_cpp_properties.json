@@ -3,14 +3,16 @@
         {
             "name": "Win32",
             "includePath": [
-                "${workspaceFolder}/**"
+                "${workspaceFolder}/**",
+                "C:/Users/enzob/Desktop/tfhe",
+                "C:/Users/enzob/Desktop"
             ],
             "defines": [
                 "_DEBUG",
                 "UNICODE",
                 "_UNICODE"
             ],
-            "compilerPath": "C:\\Strawberry\\c\\bin\\gcc.exe",
+            "compilerPath": "C:/Strawberry/c/bin/g++.exe",
             "cStandard": "c17",
             "cppStandard": "gnu++17",
             "intelliSenseMode": "windows-gcc-x64"

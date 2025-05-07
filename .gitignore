@@ -12,3 +12,6 @@
 *.iml
 out/
 target
+
+# C Files
+.vscode/

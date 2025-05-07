@@ -1,4 +1,4 @@
-#include <tfhe/tfhe.h>    // Inclut les définitions et fonctions principales de la bibliothèque TFHE.
+#include <tfhe/tfhe.h>    // Inclut les définitions de structures et de fonctions pour le chiffrement TFHE.
 #include <tfhe/tfhe_io.h> // Inclut les fonctions d'entrée/sortie pour manipuler les clés TFHE.
 #include <cstdlib>        // Fournit des fonctions standard pour la gestion des variables d'environnement.
 #include <cstring>        // Fournit des fonctions pour manipuler des chaînes de caractères.
