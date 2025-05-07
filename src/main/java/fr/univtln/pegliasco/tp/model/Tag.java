@@ -1,5 +1,6 @@
 package fr.univtln.pegliasco.tp.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -18,5 +19,11 @@ public class Tag {
     private String name;
 
     @ManyToMany(mappedBy = "tags")
+    @JsonIgnore
     private List<Movie> movies;
+
+    @ManyToOne
+    @JsonIgnore
+    private Account account;
+
 }

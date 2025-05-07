@@ -1,5 +1,6 @@
     package fr.univtln.pegliasco.tp.services;
 
+    import com.opencsv.exceptions.CsvValidationException;
     import fr.univtln.pegliasco.tp.model.*;
     import jakarta.enterprise.context.ApplicationScoped;
     import jakarta.inject.Inject;
@@ -25,6 +26,8 @@
         GenderService genderService;
         @Inject
         AccountService accountService;
+        @Inject
+        TagService tagService;
 
         @Transactional
         public void importRatingsFromCsv(String filePath) throws IOException, com.opencsv.exceptions.CsvValidationException {
@@ -152,6 +155,80 @@
             for (Movie movie : movies) {
                 movieService.saveOrUpdate(movie);
                 System.out.println("Persisted movie: " + movie.getTitle());
+            }
+        }
+
+
+        //importTagsFromCsv
+        @Transactional
+        public void importTagsFromCsv(String filePath) throws IOException, CsvValidationException {
+            final int batchSize = 5000;
+            List<Tag> batch = new ArrayList<>();
+
+            try (CSVReader csvReader = new CSVReader(new FileReader(filePath))) {
+                String[] tokens;
+
+                // Ignore header
+                csvReader.readNext();
+
+                while ((tokens = csvReader.readNext()) != null) {
+                    if (tokens.length >= 4) {
+                        Long userId = Long.parseLong(tokens[0]);
+                        Long movieId = Long.parseLong(tokens[1]);
+                        String tagName = tokens[2].trim();
+                        long timestamp = Long.parseLong(tokens[3]);
+
+                        Movie movie = movieService.getMovieById(movieId);
+                        if (movie == null) {
+                            System.out.println("Movie not found for movieId: " + movieId);
+                            continue;
+                        }
+
+                        Account account = accountService.getAccountById(userId);
+                        if (account == null) {
+                            Account newAccount = new Account();
+                            newAccount.setId(userId);
+                        }
+
+                       //new tag
+                        Tag tag = new Tag();
+                        tag.setName(tagName);
+                        tag.setAccount(account);
+                        tag.setMovies(new ArrayList<>());
+
+
+                        // Add movie if not already associated
+                        if (!tag.getMovies().contains(movie)) {
+                            tag.getMovies().add(movie);
+                        }
+
+                        // Add tag to movie if not already present
+                        if (!movie.getTags().contains(tag)) {
+                            movie.getTags().add(tag);
+                        }
+
+                        batch.add(tag);
+
+                        if (batch.size() >= batchSize) {
+                            persistTagBatch(batch);
+                            batch.clear();
+                        }
+                    }
+                }
+
+                if (!batch.isEmpty()) {
+                    persistTagBatch(batch);
+                }
+
+                System.out.println("Imported tags from: " + filePath);
+            }
+        }
+
+        @Transactional
+        public void persistTagBatch(List<Tag> tags) {
+            for (Tag tag : tags) {
+                tagService.saveOrUpdate(tag);
+                System.out.println("Persisted tag: " + tag.getName());
             }
         }
 

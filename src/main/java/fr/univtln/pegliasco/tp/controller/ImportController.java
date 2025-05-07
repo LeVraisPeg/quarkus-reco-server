@@ -47,6 +47,21 @@ public class ImportController {
         }
     }
 
+    @POST
+    @Path("/tags")
+    public Response importTagsFromCsv(FolderPathRequest folderPathRequest) {
+        try {
+            csvImporterService.importTagsFromCsv(folderPathRequest.getFolderPath());
+
+            return Response.ok(new ApiResponse("Tag CSV import completed successfully.")).build();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .entity(new ApiResponse("Error occurred during tag CSV import: " + e.getMessage()))
+                    .build();
+        }
+    }
+
 
 
 
