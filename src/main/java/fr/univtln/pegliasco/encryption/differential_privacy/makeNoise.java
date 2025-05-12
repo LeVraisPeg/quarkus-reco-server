@@ -1,5 +1,6 @@
 package fr.univtln.pegliasco.encryption.differential_privacy;
 
+import com.google.privacy.differentialprivacy.*;
 import java.util.List;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -53,6 +54,30 @@ public class MakeNoise {
     }
 
     /**
+     * Applies differential privacy to the sum of a dataset using Google's
+     * Differential Privacy library.
+     *
+     * @param data    The dataset.
+     * @param epsilon The privacy parameter (smaller values provide stronger
+     *                privacy).
+     * @param lower   The lower bound of the dataset.
+     * @param upper   The upper bound of the dataset.
+     * @return The noisy sum of the dataset.
+     */
+    public double applyDifferentialPrivacy(List<Double> data, double epsilon, double lower, double upper) {
+        BoundedSum boundedSum = BoundedSum.builder()
+                .epsilon(epsilon)
+                .lower(lower)
+                .upper(upper)
+                .maxPartitionsContributed(1)
+                .build();
+
+        data.forEach(boundedSum::addEntry);
+
+        return boundedSum.computeResult();
+    }
+
+    /**
      * Adds Gaussian noise to a given value.
      *
      * @param value           The value to which noise is added.
@@ -64,7 +89,7 @@ public class MakeNoise {
      *                        can cause).
      * @return The noisy value.
      */
-    public double generateGaussianNoiseSimple(double epsilon, double sensitivity) {
+    public double generateGaussianNoise(double epsilon, double sensitivity) {
         double sigma = (Math.sqrt(2) * sensitivity) / epsilon;
         return RANDOM.nextGaussian() * sigma;
     }
@@ -76,10 +101,10 @@ public class MakeNoise {
      * @param sensitivity The sensitivity of the function.
      * @return The noisy value.
      */
-    public double generateGaussianNoise(double epsilon, double delta, double sensitivity) {
-        double c2 = 2 * Math.log(1.25 / delta);
-        double sigma = (Math.sqrt(c2) * sensitivity) / epsilon;
-        return RANDOM.nextGaussian() * sigma;
+    public double generateLaplaceNoise(double epsilon, double sensitivity) {
+        double privacyBudget = sensitivity / epsilon;
+        double randomValue = RANDOM.nextDouble() - 0.5;
+        return privacyBudget * Math.signum(randomValue) * Math.log(1 - 2 * Math.abs(randomValue));
     }
 
     /**
@@ -107,6 +132,9 @@ public class MakeNoise {
         // Privacy parameter
         double epsilon = 0.5;
 
+        // Apply differential privacy
+        double noisySum = mn.applyDifferentialPrivacy(filmRatings, epsilon, lower, upper);
+
         // Display results
         double realSum = filmRatings.stream().mapToDouble(Double::doubleValue).sum();
         double realAverage = realSum / filmRatings.size();
@@ -119,7 +147,7 @@ public class MakeNoise {
 
         // Add Laplace noise
         List<Double> noisyRatings = filmRatings.stream()
-                .map(value -> value + mn.generateGaussianNoise(epsilon, delta, lInfSensitivity))
+                .map(value -> value + mn.generateLaplaceNoise(epsilon, lInfSensitivity))
                 .collect(Collectors.toList());
 
         double noisyAverage = noisyRatings.stream().mapToDouble(Double::doubleValue).average().orElse(0.0);
@@ -127,7 +155,7 @@ public class MakeNoise {
 
         // Add Gaussian noise
         List<Double> noisyRatings2 = filmRatings.stream()
-                .map(value -> value + mn.generateGaussianNoiseSimple(epsilon, lInfSensitivity))
+                .map(value -> value + mn.generateGaussianNoise(epsilon, lInfSensitivity))
                 .collect(Collectors.toList());
 
         double noisyAverage2 = noisyRatings2.stream().mapToDouble(Double::doubleValue).average().orElse(0.0);
