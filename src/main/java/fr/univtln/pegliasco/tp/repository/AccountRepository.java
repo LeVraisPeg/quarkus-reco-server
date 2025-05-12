@@ -10,6 +10,9 @@ import jakarta.persistence.NoResultException;
 import jakarta.persistence.PersistenceContext;
 
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 
 @ApplicationScoped
@@ -41,8 +44,9 @@ public class AccountRepository {
         em.persist(account);
     }
     // Mettre à jour un compte
-    public void update(Account account) {
+    public Account update(Account account) {
         em.merge(account);
+        return account;
     }
     // Supprimer un compte
     public void delete(Account account) {
@@ -65,4 +69,11 @@ public class AccountRepository {
                 .setParameter("role", role)
                 .getResultList();
     }
+
+    public Map<Long, Account> findAllAsMap() {
+        return em.createQuery("SELECT a FROM Account a", Account.class)
+                .getResultStream()
+                .collect(Collectors.toMap(Account::getId, Function.identity()));
+    }
+
 }

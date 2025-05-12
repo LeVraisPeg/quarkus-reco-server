@@ -5,6 +5,8 @@ import fr.univtln.pegliasco.tp.repository.AccountRepository;
 import jakarta.transaction.Transactional;
 import jakarta.enterprise.context.ApplicationScoped;
 import java.util.List;
+import java.util.Map;
+import java.util.logging.Logger;
 
 @ApplicationScoped
 public class AccountService {
@@ -57,5 +59,24 @@ public class AccountService {
     // Récupérer un compte par son rôle
     public List<Account> getAccountByRole(String role) {
         return accountRepository.findByRole(role);
+    }
+
+    //find or create account by id
+    @Transactional
+    public Account findOrCreateById(Long id) {
+        Account account = accountRepository.findById(id);
+        if (account == null) {
+            account = new Account();
+            account.setId(id);
+            account = accountRepository.update(account);
+            Logger logger = Logger.getLogger(AccountService.class.getName());
+            logger.info("New account created: " + account);
+        }
+        return account;
+    }
+
+    //findAllAsMap
+    public Map<Long, Account> findAllAsMap() {
+        return accountRepository.findAllAsMap();
     }
 }

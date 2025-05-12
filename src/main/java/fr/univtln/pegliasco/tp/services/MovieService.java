@@ -6,6 +6,7 @@ import fr.univtln.pegliasco.tp.repository.MovieRepository;
 import jakarta.transaction.Transactional;
 import jakarta.enterprise.context.ApplicationScoped;
 import java.util.List;
+import java.util.Map;
 
 @ApplicationScoped
 public class MovieService {
@@ -119,7 +120,22 @@ public class MovieService {
         }
     }
 
+    //find or create by id
+    @Transactional
+    public Movie findOrCreateById(Long id) {
+        Movie movie = movieRepository.findById(id);
+        if (movie == null) {
+            movie = new Movie();
+            movie.setId(id);
+            movieRepository.persist(movie);
+        }
+        return movie;
+    }
 
+    //findAllAsMap
+    public Map<Long, Movie> findAllAsMap() {
+        return movieRepository.findAllAsMap();
+    }
 
 
 

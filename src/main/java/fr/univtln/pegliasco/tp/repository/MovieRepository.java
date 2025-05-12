@@ -9,6 +9,9 @@ import jakarta.persistence.PersistenceContext;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @ApplicationScoped
 public class MovieRepository {
@@ -99,12 +102,14 @@ public class MovieRepository {
 
     //persister un film
     public void persist(Movie movie) {
-        if (movie.getId() != null && entityManager.find(Movie.class, movie.getId()) != null) {
-            // Entity exists, merge it
-            entityManager.merge(movie);
-        } else {
-            // New entity, persist it
-            entityManager.persist(movie);
+        entityManager.persist(movie);
         }
+
+
+    public Map<Long, Movie> findAllAsMap() {
+        return entityManager.createQuery("SELECT m FROM Movie m", Movie.class)
+                .getResultStream()
+                .collect(Collectors.toMap(Movie::getId, Function.identity()));
     }
+
 }
