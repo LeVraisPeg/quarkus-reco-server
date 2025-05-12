@@ -1,5 +1,6 @@
 package fr.univtln.pegliasco.encryption.differential_privacy;
 
+import com.google.privacy.differentialprivacy.*;
 import java.util.List;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -55,16 +56,11 @@ public class MakeNoise {
     /**
      * Adds Gaussian noise to a given value.
      *
-     * @param value           The value to which noise is added.
-     * @param epsilon         The privacy parameter.
-     * @param delta           The delta parameter for Gaussian noise.
-     * @param l0Sensitivity   The L0 sensitivity (maximum number of contributions
-     *                        per user).
-     * @param lInfSensitivity The L∞ sensitivity (maximum difference a single entry
-     *                        can cause).
+     * @param epsilon     The privacy parameter.
+     * @param sensitivity The sensitivity of the data.
      * @return The noisy value.
      */
-    public double generateGaussianNoiseSimple(double epsilon, double sensitivity) {
+    public double generateGaussianNoise(double epsilon, double sensitivity) {
         double sigma = (Math.sqrt(2) * sensitivity) / epsilon;
         return RANDOM.nextGaussian() * sigma;
     }
@@ -73,20 +69,20 @@ public class MakeNoise {
      * Adds Laplace noise to a given value.
      *
      * @param epsilon     The privacy parameter.
-     * @param sensitivity The sensitivity of the function.
+     * @param sensitivity The sensitivity of the data.
      * @return The noisy value.
      */
-    public double generateGaussianNoise(double epsilon, double delta, double sensitivity) {
-        double c2 = 2 * Math.log(1.25 / delta);
-        double sigma = (Math.sqrt(c2) * sensitivity) / epsilon;
-        return RANDOM.nextGaussian() * sigma;
+    public double generateLaplaceNoise(double epsilon, double sensitivity) {
+        double privacyBudget = sensitivity / epsilon;
+        double randomValue = RANDOM.nextDouble() - 0.5;
+        return privacyBudget * Math.signum(randomValue) * Math.log(1 - 2 * Math.abs(randomValue));
     }
 
     /**
      * Main entry point of the program.
      * 
      * <p>
-     * Generates a random list of movie ratings (between 0 and 5), applies
+     * Generates a fixed list of movie ratings (between 0 and 5), applies
      * differential privacy, and displays the real and noisy results.
      * </p>
      *
@@ -98,7 +94,15 @@ public class MakeNoise {
         // Generate 100 movie ratings between 0.0 and 5.0
         List<Double> filmRatings = List.of(
                 4.5, 3.0, 5.0, 2.5, 4.0, 3.5, 1.0, 2.0, 4.8, 3.2,
-                4.1, 3.3, 4.7, 2.8, 3.9, 4.4, 1.5, 2.3, 4.6, 3.1);
+                4.1, 3.3, 4.7, 2.8, 3.9, 4.4, 1.5, 2.3, 4.6, 3.1,
+                4.0, 3.5, 2.0, 1.0, 4.2, 3.8, 4.9, 2.7, 3.6, 4.3,
+                4.5, 3.0, 5.0, 2.5, 4.0, 3.5, 1.0, 2.0, 4.8, 3.2,
+                4.1, 3.3, 4.7, 2.8, 3.9, 4.4, 1.5, 2.3, 4.6, 3.1,
+                4.0, 3.5, 2.0, 1.0, 4.2, 3.8, 4.9, 2.7, 3.6, 4.3,
+                4.5, 3.0, 5.0, 2.5, 4.0, 3.5, 1.0, 2.0, 4.8, 3.2,
+                4.1, 3.3, 4.7, 2.8, 3.9, 4.4, 1.5, 2.3, 4.6, 3.1,
+                4.0, 3.5, 2.0, 1.0, 4.2, 3.8, 4.9, 2.7, 3.6, 4.3,
+                4.5, 3.0, 5.0, 2.5, 4.0, 3.5, 1.0, 2.0, 4.8, 3.2);
 
         // Automatically calculate min and max
         double lower = mn.getMin(filmRatings);
@@ -119,7 +123,7 @@ public class MakeNoise {
 
         // Add Laplace noise
         List<Double> noisyRatings = filmRatings.stream()
-                .map(value -> value + mn.generateGaussianNoise(epsilon, delta, lInfSensitivity))
+                .map(value -> value + mn.generateLaplaceNoise(epsilon, lInfSensitivity))
                 .collect(Collectors.toList());
 
         double noisyAverage = noisyRatings.stream().mapToDouble(Double::doubleValue).average().orElse(0.0);
@@ -127,7 +131,7 @@ public class MakeNoise {
 
         // Add Gaussian noise
         List<Double> noisyRatings2 = filmRatings.stream()
-                .map(value -> value + mn.generateGaussianNoiseSimple(epsilon, lInfSensitivity))
+                .map(value -> value + mn.generateGaussianNoise(epsilon, lInfSensitivity))
                 .collect(Collectors.toList());
 
         double noisyAverage2 = noisyRatings2.stream().mapToDouble(Double::doubleValue).average().orElse(0.0);
