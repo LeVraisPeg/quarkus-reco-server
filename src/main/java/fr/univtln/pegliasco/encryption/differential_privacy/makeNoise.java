@@ -6,7 +6,7 @@ import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 /**
- * La classe {@code makeNoise} fournit des méthodes pour appliquer la
+ * La classe {@code MakeNoise} fournit des méthodes pour appliquer la
  * confidentialité différentielle
  * (Differential Privacy) à des données numériques à l'aide de la bibliothèque
  * Google Differential Privacy.
@@ -30,8 +30,8 @@ import java.util.stream.Collectors;
  * @author Enzo
  * @version 1.0
  */
-public class makeNoise {
-    private static final Logger LOGGER = Logger.getLogger(makeNoise.class.getName());
+public class MakeNoise {
+    private static final Logger LOGGER = Logger.getLogger(MakeNoise.class.getName());
 
     /**
      * Retourne la valeur minimale d'une liste de données numériques.
