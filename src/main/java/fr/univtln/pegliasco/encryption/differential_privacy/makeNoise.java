@@ -4,6 +4,7 @@ import com.google.privacy.differentialprivacy.*;
 import java.util.List;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
+import java.util.Random;
 
 /**
  * La classe {@code MakeNoise} fournit des méthodes pour appliquer la
@@ -83,6 +84,50 @@ public class MakeNoise {
     }
 
     /**
+     * Ajoute du bruit gaussien à une valeur donnée.
+     *
+     * @param value           La valeur à laquelle ajouter du bruit.
+     * @param epsilon         Le paramètre de confidentialité (plus il est petit,
+     *                        plus la confidentialité est forte).
+     * @param delta           Le paramètre delta pour le bruit gaussien (nécessaire
+     *                        pour garantir la confidentialité).
+     * @param l0Sensitivity   La sensibilité L0 (nombre maximal de contributions par
+     *                        utilisateur).
+     * @param lInfSensitivity La sensibilité L∞ (différence maximale qu'une seule
+     *                        entrée peut provoquer).
+     * @return La valeur bruitée.
+     */
+    public static double addGaussianNoise(double value, double epsilon, double delta, int l0Sensitivity,
+            double lInfSensitivity) {
+        double l2Sensitivity = Math.sqrt(l0Sensitivity) * lInfSensitivity;
+        double sigma = l2Sensitivity / epsilon * Math.sqrt(2 * Math.log(1.25 / delta));
+        Random random = new Random();
+        double gaussianNoise = random.nextGaussian() * sigma; // Génère un bruit gaussien
+        return value + gaussianNoise;
+    }
+
+    /**
+     * Ajoute du bruit laplacien à une valeur donnée.
+     *
+     * @param value           La valeur à laquelle ajouter du bruit.
+     * @param epsilon         Le paramètre de confidentialité (plus il est petit,
+     *                        plus la confidentialité est forte).
+     * @param l0Sensitivity   La sensibilité L0 (nombre maximal de contributions par
+     *                        utilisateur).
+     * @param lInfSensitivity La sensibilité L∞ (différence maximale qu'une seule
+     *                        entrée peut provoquer).
+     * @return La valeur bruitée.
+     */
+    public static double addLaplaceNoise(double value, double epsilon, double lower, double upper) {
+        double sensitivity = upper - lower; // Sensibilité de la fonction
+        double scale = sensitivity / epsilon;
+        Random random = new Random();
+        double uniform = random.nextDouble() - 0.5; // Génère un nombre entre -0.5 et 0.5
+        double laplaceNoise = -scale * Math.signum(uniform) * Math.log(1 - 2 * Math.abs(uniform));
+        return value + laplaceNoise;
+    }
+
+    /**
      * Point d'entrée principal du programme.
      * <p>
      * Génère une liste aléatoire de notes de films (entre 0 et 5), applique la
@@ -94,9 +139,17 @@ public class MakeNoise {
      */
     public static void main(String[] args) {
         // Générer 1000 notes de films entre 0.0 et 5.0
-        List<Double> filmRatings = new java.util.Random().doubles(1000, 0.0, 5.0)
-                .boxed()
-                .collect(Collectors.toList());
+        List<Double> filmRatings = List.of(
+                4.5, 3.0, 5.0, 2.5, 4.0, 3.5, 1.0, 2.0, 4.8, 3.2,
+                4.1, 3.3, 4.7, 2.8, 3.9, 4.4, 1.5, 2.3, 4.6, 3.1,
+                4.2, 3.4, 4.9, 2.7, 3.8, 4.3, 1.8, 2.6, 4.0, 3.6,
+                4.0, 3.7, 4.5, 2.9, 3.5, 4.1, 1.2, 2.4, 4.3, 3.0,
+                4.6, 3.2, 4.8, 2.5, 3.7, 4.2, 1.7, 2.1, 4.4, 3.3,
+                4.9, 3.1, 5.0, 2.6, 3.9, 4.7, 1.4, 2.2, 4.1, 3.4,
+                4.3, 3.5, 4.6, 2.8, 3.8, 4.0, 1.9, 2.7, 4.5, 3.6,
+                4.7, 3.8, 4.2, 2.9, 3.3, 4.4, 1.3, 2.0, 4.9, 3.7,
+                4.8, 3.9, 4.1, 2.4, 3.6, 4.5, 1.6, 2.3, 4.0, 3.2,
+                4.4, 3.0, 4.7, 2.1, 3.5, 4.3, 1.1, 2.8, 4.6, 3.1);
 
         // Calculer min et max automatiquement
         double lower = getMin(filmRatings);
@@ -105,14 +158,37 @@ public class MakeNoise {
         LOGGER.info("Max des données : " + upper);
 
         // Paramètre de confidentialité
-        double epsilon = 1.0;
+        double epsilon = .5; // Plus il est petit, plus la confidentialité est forte
 
         // Appliquer la differential privacy
         double noiseSum = applyDifferentialPrivacy(filmRatings, epsilon, lower, upper);
 
         // Afficher les résultats
         double realSum = filmRatings.stream().mapToDouble(Double::doubleValue).sum();
-        System.out.println("Somme réelle : " + realSum);
-        System.out.println("Somme bruitée : " + noiseSum);
+        double realAverage = realSum / filmRatings.size();
+        System.out.println("Moyenne réelle : " + realAverage);
+
+        // Paramètres de confidentialité
+        double delta = 1e-5; // Nécessaire pour le bruit gaussien
+        int l0Sensitivity = 1; // Nombre maximal de contributions par utilisateur
+        double lInfSensitivity = 0.5; // Différence maximale qu'une seule entrée peut provoquer
+
+        // Ajouter du bruit laplacien
+        List<Double> noisyRatings = filmRatings.stream()
+                .map(value -> addLaplaceNoise(value, epsilon, lower, upper))
+                .collect(Collectors.toList());
+
+        double noisyAverage = noisyRatings.stream().mapToDouble(Double::doubleValue).average().orElse(0.0);
+        LOGGER.info("Moyenne bruitée (Laplace) : " + noisyAverage);
+
+        // Ajouter du bruit gaussien
+        List<Double> noisyRatings2 = filmRatings.stream()
+                .map(value -> addGaussianNoise(value, epsilon, delta, l0Sensitivity, lInfSensitivity))
+                .collect(Collectors.toList());
+
+        double noisyAverage2 = noisyRatings2.stream().mapToDouble(Double::doubleValue).average().orElse(0.0);
+        LOGGER.info("Moyenne bruitée (Gauss) : " + noisyAverage2);
+
     }
+
 }
