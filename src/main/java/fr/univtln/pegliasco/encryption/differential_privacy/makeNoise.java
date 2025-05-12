@@ -54,39 +54,10 @@ public class MakeNoise {
     }
 
     /**
-     * Applies differential privacy to the sum of a dataset using Google's
-     * Differential Privacy library.
-     *
-     * @param data    The dataset.
-     * @param epsilon The privacy parameter (smaller values provide stronger
-     *                privacy).
-     * @param lower   The lower bound of the dataset.
-     * @param upper   The upper bound of the dataset.
-     * @return The noisy sum of the dataset.
-     */
-    public double applyDifferentialPrivacy(List<Double> data, double epsilon, double lower, double upper) {
-        BoundedSum boundedSum = BoundedSum.builder()
-                .epsilon(epsilon)
-                .lower(lower)
-                .upper(upper)
-                .maxPartitionsContributed(1)
-                .build();
-
-        data.forEach(boundedSum::addEntry);
-
-        return boundedSum.computeResult();
-    }
-
-    /**
      * Adds Gaussian noise to a given value.
      *
-     * @param value           The value to which noise is added.
-     * @param epsilon         The privacy parameter.
-     * @param delta           The delta parameter for Gaussian noise.
-     * @param l0Sensitivity   The L0 sensitivity (maximum number of contributions
-     *                        per user).
-     * @param lInfSensitivity The L∞ sensitivity (maximum difference a single entry
-     *                        can cause).
+     * @param epsilon     The privacy parameter.
+     * @param sensitivity The sensitivity of the data.
      * @return The noisy value.
      */
     public double generateGaussianNoise(double epsilon, double sensitivity) {
@@ -98,7 +69,7 @@ public class MakeNoise {
      * Adds Laplace noise to a given value.
      *
      * @param epsilon     The privacy parameter.
-     * @param sensitivity The sensitivity of the function.
+     * @param sensitivity The sensitivity of the data.
      * @return The noisy value.
      */
     public double generateLaplaceNoise(double epsilon, double sensitivity) {
@@ -111,7 +82,7 @@ public class MakeNoise {
      * Main entry point of the program.
      * 
      * <p>
-     * Generates a random list of movie ratings (between 0 and 5), applies
+     * Generates a fixed list of movie ratings (between 0 and 5), applies
      * differential privacy, and displays the real and noisy results.
      * </p>
      *
@@ -123,7 +94,15 @@ public class MakeNoise {
         // Generate 100 movie ratings between 0.0 and 5.0
         List<Double> filmRatings = List.of(
                 4.5, 3.0, 5.0, 2.5, 4.0, 3.5, 1.0, 2.0, 4.8, 3.2,
-                4.1, 3.3, 4.7, 2.8, 3.9, 4.4, 1.5, 2.3, 4.6, 3.1);
+                4.1, 3.3, 4.7, 2.8, 3.9, 4.4, 1.5, 2.3, 4.6, 3.1,
+                4.0, 3.5, 2.0, 1.0, 4.2, 3.8, 4.9, 2.7, 3.6, 4.3,
+                4.5, 3.0, 5.0, 2.5, 4.0, 3.5, 1.0, 2.0, 4.8, 3.2,
+                4.1, 3.3, 4.7, 2.8, 3.9, 4.4, 1.5, 2.3, 4.6, 3.1,
+                4.0, 3.5, 2.0, 1.0, 4.2, 3.8, 4.9, 2.7, 3.6, 4.3,
+                4.5, 3.0, 5.0, 2.5, 4.0, 3.5, 1.0, 2.0, 4.8, 3.2,
+                4.1, 3.3, 4.7, 2.8, 3.9, 4.4, 1.5, 2.3, 4.6, 3.1,
+                4.0, 3.5, 2.0, 1.0, 4.2, 3.8, 4.9, 2.7, 3.6, 4.3,
+                4.5, 3.0, 5.0, 2.5, 4.0, 3.5, 1.0, 2.0, 4.8, 3.2);
 
         // Automatically calculate min and max
         double lower = mn.getMin(filmRatings);
@@ -131,9 +110,6 @@ public class MakeNoise {
 
         // Privacy parameter
         double epsilon = 0.5;
-
-        // Apply differential privacy
-        double noisySum = mn.applyDifferentialPrivacy(filmRatings, epsilon, lower, upper);
 
         // Display results
         double realSum = filmRatings.stream().mapToDouble(Double::doubleValue).sum();
