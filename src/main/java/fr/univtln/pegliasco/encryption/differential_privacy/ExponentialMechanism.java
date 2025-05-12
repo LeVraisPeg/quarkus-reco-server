@@ -14,75 +14,79 @@ import fr.univtln.pegliasco.tp.model.Movie;
  * from a list based on a probability distribution derived from utility scores.
  */
 public class ExponentialMechanism {
-    private static final int MAX_NOTATION = 5;
-    private static final double SENSIBILITY = 0.5;
-    private final Random rdGenerator = new Random();
+    private static final int MAX_RATING = 5;
+    private static final double SENSITIVITY = 0.5;
+    private final Random randomGenerator = new Random();
 
     /**
-     * Computes the utility of a given note.
+     * Computes the utility of a given rating.
      *
-     * @param note the note to evaluate
-     * @return the utility value of the note
+     * @param rating the rating to evaluate
+     * @return the utility value of the rating
      */
-    private double getUtility(double note) {
-        return -Math.abs(note - MAX_NOTATION);
+    private double computeUtility(double rating) {
+        return -Math.abs(rating - MAX_RATING);
     }
 
     /**
      * Generates a cumulative probability distribution based on the predicted
-     * notations and the privacy parameter epsilon.
+     * ratings and the privacy parameter epsilon.
      *
-     * @param predectedEvaluation the list of predicted notations
-     * @param epsilon             the privacy parameter
+     * @param predictedRatings the list of predicted ratings
+     * @param epsilon          the privacy parameter
      * @return a list of cumulative probabilities
      * @throws IllegalArgumentException if the sum of generated values is zero
      */
-    private List<Double> generateProbability(List<Double> predectedEvaluation, double epsilon) {
-        List<Double> cumulateProbability = new ArrayList<>();
-        double sumOfGeneratedValues = 0;
-        for (double note : predectedEvaluation) {
-            double value = Math.exp(epsilon * getUtility(note) / (2 * SENSIBILITY));
-            sumOfGeneratedValues += value;
-            cumulateProbability.add(value);
+    private List<Double> generateCumulativeProbabilities(List<Double> predictedRatings, double epsilon) {
+        if (predictedRatings == null || predictedRatings.isEmpty()) {
+            throw new IllegalArgumentException("The predicted ratings list cannot be null or empty.");
         }
 
-        if (sumOfGeneratedValues == 0) {
+        List<Double> cumulativeProbabilities = new ArrayList<>();
+        double sumOfValues = 0;
+
+        for (double rating : predictedRatings) {
+            double value = Math.exp(epsilon * computeUtility(rating) / (2 * SENSITIVITY));
+            sumOfValues += value;
+            cumulativeProbabilities.add(value);
+        }
+
+        if (sumOfValues == 0) {
             throw new IllegalArgumentException(
                     "Sum of generated values is zero, cannot normalize to generate probabilities.");
         }
 
-        for (int i = 0; i < cumulateProbability.size(); i++) {
+        for (int i = 0; i < cumulativeProbabilities.size(); i++) {
             if (i == 0) {
-                cumulateProbability.set(i, cumulateProbability.get(i) / sumOfGeneratedValues);
+                cumulativeProbabilities.set(i, cumulativeProbabilities.get(i) / sumOfValues);
             } else {
-                cumulateProbability.set(i,
-                        cumulateProbability.get(i) / sumOfGeneratedValues + cumulateProbability.get(i - 1));
+                cumulativeProbabilities.set(i,
+                        cumulativeProbabilities.get(i) / sumOfValues + cumulativeProbabilities.get(i - 1));
             }
         }
-        return cumulateProbability;
+        return cumulativeProbabilities;
     }
 
     /**
      * Generates a pair containing a list of movies and their corresponding
-     * cumulative probabilities.
+     * predicted ratings.
      *
-     * @param recomendedMovieList a map of movies and their associated scores
-     * @return a pair containing the list of movies and the list of cumulative
-     *         probabilities
+     * @param recommendedMovies a map of movies and their associated scores
+     * @return a pair containing the list of movies and the list of predicted
+     *         ratings
      */
-    private Pair<List<Movie>, List<Double>> generateListofMovieAndListOfCumulateProbability(
-            Map<Movie, Double> recomendedMovieList) {
+    private Pair<List<Movie>, List<Double>> generateMoviesAndRatings(Map<Movie, Double> recommendedMovies) {
         List<Movie> movieList = new ArrayList<>();
-        List<Double> predictedEvaluation = new ArrayList<>();
+        List<Double> predictedRatings = new ArrayList<>();
 
-        for (Map.Entry<Movie, Double> entry : recomendedMovieList.entrySet()) {
+        for (Map.Entry<Movie, Double> entry : recommendedMovies.entrySet()) {
             movieList.add(entry.getKey());
-            predictedEvaluation.add(entry.getValue());
+            predictedRatings.add(entry.getValue());
         }
 
         Pair<List<Movie>, List<Double>> pair = new Pair<>();
         pair.setFirst(movieList);
-        pair.setSecond(predictedEvaluation);
+        pair.setSecond(predictedRatings);
         return pair;
     }
 
@@ -90,14 +94,14 @@ public class ExponentialMechanism {
      * Finds the index of the first element in the cumulative probability list
      * that is greater than or equal to the given random value.
      *
-     * @param cumuledProbability the list of cumulative probabilities
-     * @param randomValue        the random value to compare
+     * @param cumulativeProbabilities the list of cumulative probabilities
+     * @param randomValue             the random value to compare
      * @return an {@code OptionalInt} containing the index if found, or empty if not
      *         found
      */
-    private OptionalInt findIndexWithRdNumber(List<Double> cumuledProbability, double randomValue) {
-        for (int index = 0; index < cumuledProbability.size(); index++) {
-            if (randomValue < cumuledProbability.get(index)) {
+    private OptionalInt findIndexWithRandomValue(List<Double> cumulativeProbabilities, double randomValue) {
+        for (int index = 0; index < cumulativeProbabilities.size(); index++) {
+            if (randomValue < cumulativeProbabilities.get(index)) {
                 return OptionalInt.of(index);
             }
         }
@@ -108,21 +112,25 @@ public class ExponentialMechanism {
      * Selects a random movie from the recommended movie list based on the
      * Exponential Mechanism.
      *
-     * @param recomendedMovieList a map of movies and their associated scores
-     * @param epsilon             the privacy parameter
+     * @param recommendedMovies a map of movies and their associated scores
+     * @param epsilon           the privacy parameter
      * @return the selected movie
      * @throws IllegalStateException if no movie is found for the given random value
      */
-    public Movie selectRandomMovie(Map<Movie, Double> recomendedMovieList, double epsilon) {
-        double randomValue = rdGenerator.nextDouble();
+    public Movie selectRandomMovie(Map<Movie, Double> recommendedMovies, double epsilon) {
+        if (recommendedMovies == null || recommendedMovies.isEmpty()) {
+            throw new IllegalArgumentException("The recommended movies map cannot be null or empty.");
+        }
 
-        Pair<List<Movie>, List<Double>> pair = generateListofMovieAndListOfCumulateProbability(
-                recomendedMovieList);
+        double randomValue = randomGenerator.nextDouble();
 
-        List<Double> cumuledProbability = generateProbability(pair.getSecond(), epsilon);
-        OptionalInt key = findIndexWithRdNumber(cumuledProbability, randomValue);
-        if (key.isPresent()) {
-            return pair.getFirst().get(key.getAsInt());
+        Pair<List<Movie>, List<Double>> pair = generateMoviesAndRatings(recommendedMovies);
+
+        List<Double> cumulativeProbabilities = generateCumulativeProbabilities(pair.getSecond(), epsilon);
+        OptionalInt index = findIndexWithRandomValue(cumulativeProbabilities, randomValue);
+
+        if (index.isPresent()) {
+            return pair.getFirst().get(index.getAsInt());
         } else {
             throw new IllegalStateException("No movie found for the given random value.");
         }
