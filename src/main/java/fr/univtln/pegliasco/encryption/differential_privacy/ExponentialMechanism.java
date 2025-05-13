@@ -135,38 +135,5 @@ public class ExponentialMechanism {
             throw new IllegalStateException("No movie found for the given random value.");
         }
     }
-
-    public static void main(String[] args) {
-        // Example usage
-
-        Movie movie1 = new Movie();
-        movie1.setId(1L);
-        movie1.setTitle("Inception");
-        movie1.setYear(2010);
-
-        Movie movie2 = new Movie();
-        movie2.setId(2L);
-        movie2.setTitle("The Matrix");
-        movie2.setYear(1999);
-
-        Movie movie3 = new Movie();
-        movie3.setId(3L);
-        movie3.setTitle("Interstellar");
-        movie3.setYear(2014);
-
-        Movie movie4 = new Movie();
-        movie4.setId(4L);
-        movie4.setTitle("The Dark Knight");
-        movie4.setYear(2008);
-
-        Map<Movie, Double> recommendedMovies = Map.of(
-                movie1, 3.0,
-                movie2, 4.0,
-                movie3, 1.5,
-                movie4, 4.9);
-
-        ExponentialMechanism mechanism = new ExponentialMechanism();
-        Movie selectedMovie = mechanism.selectRandomMovie(recommendedMovies, 0.5);
-        System.out.println("Selected movie: " + selectedMovie.getTitle() + " (" + selectedMovie.getYear() + ")");
-    }
+    //epsilon = 0.5
 }
