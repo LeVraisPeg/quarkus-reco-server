@@ -4,7 +4,6 @@ import fr.univtln.pegliasco.encryption.differential_privacy.MakeNoise;
 import fr.univtln.pegliasco.tp.model.Rating;
 
 import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 
@@ -12,7 +11,6 @@ import java.util.List;
 
 @ApplicationScoped
 public class RatingRepository {
-    private MakeNoise makeNoise;
 
     @PersistenceContext
     EntityManager entityManager;
@@ -25,10 +23,11 @@ public class RatingRepository {
         return entityManager.find(Rating.class, id);
     }
 
-    //findByAccountIdAndMovieId
+    // findByAccountIdAndMovieId
     public Rating findByAccountIdAndMovieId(Long accountId, Long movieId) {
         return entityManager
-                .createQuery("SELECT r FROM Rating r WHERE r.account.id = :accountId AND r.movie.id = :movieId", Rating.class)
+                .createQuery("SELECT r FROM Rating r WHERE r.account.id = :accountId AND r.movie.id = :movieId",
+                        Rating.class)
                 .setParameter("accountId", accountId)
                 .setParameter("movieId", movieId)
                 .getSingleResult();
@@ -49,12 +48,12 @@ public class RatingRepository {
         }
     }
 
-    //findByAccountId
+    // findByAccountId
     public List<Rating> findByAccountId(Long accountId) {
-        List<Rating> ratings= entityManager
+        List<Rating> ratings = entityManager
                 .createQuery("SELECT r FROM Rating r WHERE r.account.id = :accountId", Rating.class)
                 .setParameter("accountId", accountId)
                 .getResultList();
-        return makeNoise.applyLapplaceNoise(ratings);
+        return MakeNoise.applyLapplaceNoise(ratings);
     }
 }

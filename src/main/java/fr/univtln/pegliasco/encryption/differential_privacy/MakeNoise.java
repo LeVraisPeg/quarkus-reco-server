@@ -6,6 +6,7 @@ import java.util.logging.Logger;
 import com.arjuna.ats.internal.jdbc.drivers.modifiers.list;
 
 import fr.univtln.pegliasco.tp.model.Rating;
+import lombok.NoArgsConstructor;
 
 import java.util.Random;
 
@@ -32,6 +33,7 @@ import java.util.Random;
  * @author Enzo
  * @version 1.0
  */
+@NoArgsConstructor
 public class MakeNoise {
     private static final Logger LOGGER = Logger.getLogger(MakeNoise.class.getName());
     private static final Random RANDOM = new Random();
@@ -52,7 +54,7 @@ public class MakeNoise {
      * @param data The dataset.
      * @return The maximum value, or 0.0 if the dataset is empty.
      */
-    public double getMax(List<Double> data) {
+    public static double getMax(List<Double> data) {
         return data.stream().mapToDouble(Double::doubleValue).max().orElse(0.0);
     }
 
@@ -63,7 +65,7 @@ public class MakeNoise {
      * @param sensitivity The sensitivity of the data.
      * @return The noisy value.
      */
-    public double generateGaussianNoise(double epsilon, double sensitivity) {
+    public static double generateGaussianNoise(double epsilon, double sensitivity) {
         double sigma = (Math.sqrt(2) * sensitivity) / epsilon;
         return RANDOM.nextGaussian() * sigma;
     }
@@ -75,13 +77,13 @@ public class MakeNoise {
      * @param sensitivity The sensitivity of the data.
      * @return The noisy value.
      */
-    private double generateLaplaceNoise(double epsilon, double sensitivity) {
+    private static double generateLaplaceNoise(double epsilon, double sensitivity) {
         double privacyBudget = sensitivity / epsilon;
         double randomValue = RANDOM.nextDouble() - 0.5;
         return privacyBudget * Math.signum(randomValue) * Math.log(1 - 2 * Math.abs(randomValue));
     }
 
-    public List<Rating> applyLapplaceNoise(List<Rating> ratings) {
+    public static List<Rating> applyLapplaceNoise(List<Rating> ratings) {
         ratings.forEach(rating -> {
             double noise = generateLaplaceNoise(0.5, 1);
             rating.setRate((float) (rating.getRate() + noise));
