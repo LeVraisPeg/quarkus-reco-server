@@ -56,23 +56,22 @@ public class RatingController {
     }
 
 
-
-    // Récupérer la note d'un utilisateur pour un film par leurs IDs
-    @GET
-    @Path("/user/{userId}/movie/{movieId}")
-    public Response getRatingByUserIdAndMovieId(@PathParam("userId") Long userId, @PathParam("movieId") Long movieId) {
-        Rating rating = ratingService.getRatingByAccountIdAndMovieId(userId, movieId);
-        if (rating != null) {
-            return Response.ok(rating).build();
-        } else {
-            return Response.status(Response.Status.NOT_FOUND).build();
-        }
-    }
-
     //findByAccountId
     @GET
     @Path("/account/{accountId}")
     public List<Rating> getRatingsByAccountId(@PathParam("accountId") Long accountId) {
         return ratingService.getRatingsByAccountId(accountId);
+    }
+
+    //recupérer la note d'un account pour un film par leur id
+    @GET
+    @Path("/account/{accountId}/movie/{movieId}")
+    public Response getRatingByAccountIdAndMovieId(@PathParam("accountId") Long accountId, @PathParam("movieId") Long movieId) {
+        Rating rating = ratingService.getRatingByAccountIdAndMovieId(accountId, movieId);
+        if (rating != null) {
+            return Response.ok(rating).build();
+        } else {
+            return Response.status(Response.Status.NOT_FOUND).build();
+        }
     }
 }
