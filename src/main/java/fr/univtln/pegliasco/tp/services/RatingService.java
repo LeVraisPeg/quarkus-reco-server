@@ -72,5 +72,11 @@ public class RatingService {
         }
     }
 
+    //get rating by account id
+    @Transactional
+    public List<Rating> getRatingsByAccountId(Long accountId) {
+        return ratingRepository.findByAccountId(accountId);
+    }
+
 
 }

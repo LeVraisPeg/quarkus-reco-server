@@ -56,4 +56,11 @@ public class RatingRepository {
         }
     }
 
+    //findByAccountId
+    public List<Rating> findByAccountId(Long accountId) {
+        return entityManager
+                .createQuery("SELECT r FROM Rating r WHERE r.account.id = :accountId", Rating.class)
+                .setParameter("accountId", accountId)
+                .getResultList();
+    }
 }

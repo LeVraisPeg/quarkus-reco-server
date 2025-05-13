@@ -54,12 +54,7 @@ public class RatingController {
             return Response.status(Response.Status.NOT_FOUND).build();
         }
     }
-    // Récupérer toutes les évaluations d'un utilisateur par son ID
-    @GET
-    @Path("/user/{userId}")
-    public List<Rating> getRatingsByUserId(@PathParam("userId") Long userId) {
-        return ratingService.getRatingsByUserId(userId);
-    }
+
 
 
     // Récupérer la note d'un utilisateur pour un film par leurs IDs
@@ -74,4 +69,10 @@ public class RatingController {
         }
     }
 
+    //findByAccountId
+    @GET
+    @Path("/account/{accountId}")
+    public List<Rating> getRatingsByAccountId(@PathParam("accountId") Long accountId) {
+        return ratingService.getRatingsByAccountId(accountId);
+    }
 }
