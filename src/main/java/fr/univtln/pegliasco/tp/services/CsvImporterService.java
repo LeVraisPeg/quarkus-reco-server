@@ -67,7 +67,7 @@
                 }
             }
 
-            // Batch persist (inchangé)
+            // Batch persist
             List<List<Rating>> batches = new ArrayList<>();
             for (int i = 0; i < allRatings.size(); i += batchSize) {
                 batches.add(allRatings.subList(i, Math.min(i + batchSize, allRatings.size())));
@@ -86,45 +86,45 @@
 
 
         private void persistBatchRatingWithTransaction(List<Rating> ratings) {
-            // Create a new EntityManager for each thread
+            // Créer un nouvel EntityManager pour chaque thread
             EntityManager entityManager = em.getEntityManagerFactory().createEntityManager();
             EntityTransaction transaction = entityManager.getTransaction();
 
             try {
-                // Start the transaction manually
+                // Démarrer la transaction
                 transaction.begin();
 
                 for (int i = 0; i < ratings.size(); i++) {
                     Rating rating = ratings.get(i);
 
-                    // Use merge() to reattach detached entities
+                    // Merge pour attacher les entités
                     Account managedAccount = entityManager.merge(rating.getAccount());
                     Movie managedMovie = entityManager.merge(rating.getMovie());
 
-                    // Assign the managed entities
+                    // Associer les entités gérées au rating
                     rating.setAccount(managedAccount);
                     rating.setMovie(managedMovie);
 
-                    // Persist the Rating entity
+                    // Persist le rating
                     entityManager.persist(rating);
 
-                    if (i % 1000 == 0) {  // Flush every 1000 elements
+                    if (i % 1000 == 0) {  // Flush tous les 1000 éléments
                         entityManager.flush();
-                        entityManager.clear();  // Clear the persistence context to free memory
+                        entityManager.clear();  // Nettoyer le contexte de persistance
                     }
                 }
 
-                entityManager.flush();  // Final flush
-                transaction.commit();  // Commit the transaction
+                entityManager.flush();  // Flush final
+                transaction.commit();  // Commit la transaction
 
             } catch (Exception e) {
-                // Rollback the transaction in case of an error
+                // En cas d'erreur, annuler la transaction
                 if (transaction.isActive()) {
                     transaction.rollback();
                 }
                 e.printStackTrace();
             } finally {
-                entityManager.close();  // Close the EntityManager
+                entityManager.close();  // Fermer l'EntityManager
             }
         }
 
@@ -205,7 +205,6 @@
 
 
 
-        //importTagsFromCsv
 
         public void importTagsFromCsv(String filePath) throws IOException, CsvValidationException {
             final int batchSize = 5000;
