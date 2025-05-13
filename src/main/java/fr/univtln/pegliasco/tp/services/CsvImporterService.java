@@ -6,9 +6,6 @@
     import jakarta.inject.Inject;
     import jakarta.persistence.EntityManager;
     import jakarta.persistence.EntityTransaction;
-    import jakarta.persistence.PersistenceContext;
-    import jakarta.transaction.Transactional;
-
 
     import java.io.IOException;
     import java.util.*;
@@ -18,24 +15,17 @@
     import java.io.FileReader;
     import java.util.concurrent.ExecutorService;
     import java.util.concurrent.Executors;
-    import java.util.function.Function;
     import java.util.stream.Collectors;
 
     @ApplicationScoped
     public class CsvImporterService {
 
         @Inject
-        RatingService ratingService;
-
-        @Inject
         MovieService movieService;
-
         @Inject
         GenderService genderService;
         @Inject
         AccountService accountService;
-        @Inject
-        TagService tagService;
         @Inject
         EntityManager em;
 
@@ -139,11 +129,6 @@
         }
 
 
-
-
-
-
-
         public void importMoviesFromCsv(String filePath) throws IOException, CsvValidationException {
             final int batchSize = 5000;
             List<Movie> allMovies = new ArrayList<>();
@@ -221,77 +206,100 @@
 
 
         //importTagsFromCsv
-        @Transactional
+
         public void importTagsFromCsv(String filePath) throws IOException, CsvValidationException {
             final int batchSize = 5000;
-            List<Tag> batch = new ArrayList<>();
+            List<Tag> allTags = new ArrayList<>();
+
+            // Préchargement des comptes et films existants
+            Map<Long, Account> accountCache = accountService.findAllAsMap();
+            Map<Long, Movie> movieCache = movieService.findAllAsMap();
 
             try (CSVReader csvReader = new CSVReader(new FileReader(filePath))) {
                 String[] tokens;
-
-                // Ignore header
-                csvReader.readNext();
+                csvReader.readNext(); // Skip header
 
                 while ((tokens = csvReader.readNext()) != null) {
                     if (tokens.length >= 4) {
                         Long userId = Long.parseLong(tokens[0]);
                         Long movieId = Long.parseLong(tokens[1]);
                         String tagName = tokens[2].trim();
-                        long timestamp = Long.parseLong(tokens[3]);
 
-                        Movie movie = movieService.getMovieById(movieId);
-                        if (movie == null) {
-                            System.out.println("Movie not found for movieId: " + movieId);
-                            continue;
-                        }
+                        // Récupérer le film
+                        Movie movie = movieCache.get(movieId);
+                        if (movie == null) continue;
 
-                        Account account = accountService.getAccountById(userId);
-                        if (account == null) {
-                            Account newAccount = new Account();
-                            newAccount.setId(userId);
-                        }
+                        // Récupérer ou créer le compte
+                        Account account = accountCache.computeIfAbsent(userId, id -> accountService.findOrCreateById(id));
 
-                       //new tag
+                        // Créer le tag
                         Tag tag = new Tag();
                         tag.setName(tagName);
                         tag.setAccount(account);
-                        tag.setMovies(new ArrayList<>());
+                        tag.setMovies(new ArrayList<>(List.of(movie))); // associer le film
+
+                        allTags.add(tag);
+                    }
+                }
+            }
+
+            // Partitionner les tags en batchs
+            List<List<Tag>> batches = new ArrayList<>();
+            for (int i = 0; i < allTags.size(); i += batchSize) {
+                batches.add(allTags.subList(i, Math.min(i + batchSize, allTags.size())));
+            }
+
+            // Exécution parallèle
+            ExecutorService executor = Executors.newFixedThreadPool(4);
+            List<CompletableFuture<Void>> futures = batches.stream()
+                    .map(batch -> CompletableFuture.runAsync(() -> persistBatchTagWithTransaction(batch), executor))
+                    .toList();
+            CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
+            executor.shutdown();
+
+            System.out.println("Imported tags from: " + filePath);
+        }
 
 
-                        // Add movie if not already associated
-                        if (!tag.getMovies().contains(movie)) {
-                            tag.getMovies().add(movie);
-                        }
+        private void persistBatchTagWithTransaction(List<Tag> tags) {
+            EntityManager entityManager = em.getEntityManagerFactory().createEntityManager();
+            EntityTransaction transaction = entityManager.getTransaction();
 
-                        // Add tag to movie if not already present
-                        if (!movie.getTags().contains(tag)) {
-                            movie.getTags().add(tag);
-                        }
+            try {
+                transaction.begin();
 
-                        batch.add(tag);
+                for (int i = 0; i < tags.size(); i++) {
+                    Tag tag = tags.get(i);
 
-                        if (batch.size() >= batchSize) {
-                            persistTagBatch(batch);
-                            batch.clear();
-                        }
+                    // Merge pour attacher les entités
+                    Account managedAccount = entityManager.merge(tag.getAccount());
+                    List<Movie> managedMovies = tag.getMovies().stream()
+                            .map(movie -> entityManager.merge(movie))
+                            .distinct() // éviter les doublons
+                            .toList();
+
+                    tag.setAccount(managedAccount);
+                    tag.setMovies(managedMovies);
+
+                    entityManager.persist(tag);
+
+                    if (i % 1000 == 0) {
+                        entityManager.flush();
+                        entityManager.clear();
                     }
                 }
 
-                if (!batch.isEmpty()) {
-                    persistTagBatch(batch);
-                }
+                entityManager.flush();
+                transaction.commit();
 
-                System.out.println("Imported tags from: " + filePath);
+            } catch (Exception e) {
+                if (transaction.isActive()) transaction.rollback();
+                e.printStackTrace();
+            } finally {
+                entityManager.close();
             }
         }
 
-        @Transactional
-        public void persistTagBatch(List<Tag> tags) {
-            for (Tag tag : tags) {
-                tagService.saveOrUpdate(tag);
-                System.out.println("Persisted tag: " + tag.getName());
-            }
-        }
 
 
 
