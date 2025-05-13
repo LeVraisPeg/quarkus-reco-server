@@ -2,6 +2,11 @@ package fr.univtln.pegliasco.encryption.differential_privacy;
 
 import java.util.List;
 import java.util.logging.Logger;
+
+import com.arjuna.ats.internal.jdbc.drivers.modifiers.list;
+
+import fr.univtln.pegliasco.tp.model.Rating;
+
 import java.util.Random;
 
 /**
@@ -70,10 +75,18 @@ public class MakeNoise {
      * @param sensitivity The sensitivity of the data.
      * @return The noisy value.
      */
-    public double generateLaplaceNoise(double epsilon, double sensitivity) {
+    private double generateLaplaceNoise(double epsilon, double sensitivity) {
         double privacyBudget = sensitivity / epsilon;
         double randomValue = RANDOM.nextDouble() - 0.5;
         return privacyBudget * Math.signum(randomValue) * Math.log(1 - 2 * Math.abs(randomValue));
+    }
+
+    public List<Rating> applyLapplaceNoise(List<Rating> ratings) {
+        ratings.forEach(rating -> {
+            double noise = generateLaplaceNoise(0.5, 1);
+            rating.setRate((float) (rating.getRate() + noise));
+        });
+        return ratings;
     }
 
     // Parameters for differential privacy
