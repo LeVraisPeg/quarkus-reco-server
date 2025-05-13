@@ -85,10 +85,16 @@ public class MakeNoise {
 
     public static List<Rating> applyLapplaceNoise(List<Rating> ratings) {
         ratings.forEach(rating -> {
-            double noise = generateLaplaceNoise(0.5, 1);
+            double noise = generateLaplaceNoise(1, 0.5);
             rating.setRate((float) (rating.getRate() + noise));
         });
         return ratings;
+    }
+
+    public static Rating applyLapplaceNoise(Rating rating) {
+        double noise = generateLaplaceNoise(1, 0.5);
+        rating.setRate((float) (rating.getRate() + noise));
+        return rating;
     }
 
     // Parameters for differential privacy

@@ -64,6 +64,7 @@ public class AccountController {
         accountService.deleteAccount(id);
         return Response.noContent().build();
     }
+
     // Récupérer un compte par son nom d'utilisateur
     @GET
     @Path("/username/{username}")
@@ -74,6 +75,7 @@ public class AccountController {
         }
         return Response.ok(account).build();
     }
+
     // Authentification (nom d'utilisateur et mot de passe)
     @POST
     @Path("/login")
@@ -85,6 +87,7 @@ public class AccountController {
         }
         return Response.ok(account).build();
     }
+
     // Récupérer un compte par son rôle
     @GET
     @Path("/role/{role}")
