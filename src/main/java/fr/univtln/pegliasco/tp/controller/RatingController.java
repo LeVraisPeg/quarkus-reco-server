@@ -72,7 +72,7 @@ public class RatingController {
             @PathParam("movieId") Long movieId) {
         List<Rating> ratings = ratingService.getRatingByAccountIdAndMovieId(accountId, movieId);
         if (!ratings.isEmpty()) {
-            return Response.ok(ratings).build();
+            return Response.ok(MakeNoise.applyLapplaceNoise(ratings)).build();
         } else {
             return Response.ok(List.of()).build(); // Renvoie une liste vide
         }
