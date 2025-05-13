@@ -1,4 +1,5 @@
 package fr.univtln.pegliasco.tp.model;
+
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
