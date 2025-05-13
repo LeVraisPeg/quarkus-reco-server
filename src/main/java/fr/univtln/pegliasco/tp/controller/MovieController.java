@@ -2,6 +2,7 @@ package fr.univtln.pegliasco.tp.controller;
 
 import fr.univtln.pegliasco.tp.model.Rating;
 import fr.univtln.pegliasco.tp.services.MovieService;
+import fr.univtln.pegliasco.encryption.differential_privacy.MakeNoise;
 import fr.univtln.pegliasco.tp.model.Movie;
 
 import jakarta.inject.Inject;
@@ -22,12 +23,14 @@ public class MovieController {
     public List<Movie> getAllMovies() {
         return movieService.getAllMovies();
     }
+
     // Ajouter un film
     @POST
     public Response addMovie(Movie movie) {
         movieService.addMovie(movie);
         return Response.status(Response.Status.CREATED).entity(movie).build();
     }
+
     // Supprimer un film par son ID
     @DELETE
     @Path("/{id}")
@@ -35,6 +38,7 @@ public class MovieController {
         movieService.deleteMovie(id);
         return Response.noContent().build();
     }
+
     // Mettre à jour un film par son ID
     @PUT
     @Path("/{id}")
@@ -42,6 +46,7 @@ public class MovieController {
         movieService.updateMovie(id, movie);
         return Response.ok(movie).build();
     }
+
     // Récupérer un film par son ID
     @GET
     @Path("/{id}")
@@ -54,13 +59,13 @@ public class MovieController {
         }
     }
 
-    //Récupérer les notes d'un film par son ID
+    // Récupérer les notes d'un film par son ID
     @GET
     @Path("/rating/{movieId}")
     public Response getRatingsByMovieId(@PathParam("movieId") Long movieId) {
         List<Rating> ratings = movieService.getRatingsByMovieId(movieId);
         if (ratings != null && !ratings.isEmpty()) {
-            return Response.ok(ratings).build();
+            return Response.ok(MakeNoise.applyLapplaceNoise(ratings)).build();
         } else {
             return Response.status(Response.Status.NOT_FOUND).build();
         }
@@ -97,6 +102,7 @@ public class MovieController {
             return Response.status(Response.Status.NOT_FOUND).build();
         }
     }
+
     // Récupérer les films par titre
     @GET
     @Path("/title/{title}")
@@ -108,6 +114,7 @@ public class MovieController {
             return Response.status(Response.Status.NOT_FOUND).build();
         }
     }
+
     // Récupérer les films par année
     @GET
     @Path("/year/{year}")
