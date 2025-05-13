@@ -61,7 +61,7 @@ public class RatingController {
     @GET
     @Path("/user/{userId}/movie/{movieId}")
     public Response getRatingByUserIdAndMovieId(@PathParam("userId") Long userId, @PathParam("movieId") Long movieId) {
-        Rating rating = ratingService.getRatingByUserIdAndMovieId(userId, movieId);
+        Rating rating = ratingService.getRatingByAccountIdAndMovieId(userId, movieId);
         if (rating != null) {
             return Response.ok(rating).build();
         } else {

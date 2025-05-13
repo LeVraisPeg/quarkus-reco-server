@@ -25,18 +25,11 @@ public class RatingRepository {
         return entityManager.find(Rating.class, id);
     }
 
-    public List<Rating> findByUserId(Long userId) {
-        List<Rating> ratings = entityManager
-                .createQuery("SELECT r FROM Rating r WHERE r.user.id = :userId", Rating.class)
-                .setParameter("userId", userId)
-                .getResultList();
-        return makeNoise.applyLapplaceNoise(ratings);
-    }
-
-    public Rating findByUserIdAndMovieId(Long userId, Long movieId) {
+    //findByAccountIdAndMovieId
+    public Rating findByAccountIdAndMovieId(Long accountId, Long movieId) {
         return entityManager
-                .createQuery("SELECT r FROM Rating r WHERE r.user.id = :userId AND r.movie.id = :movieId", Rating.class)
-                .setParameter("userId", userId)
+                .createQuery("SELECT r FROM Rating r WHERE r.account.id = :accountId AND r.movie.id = :movieId", Rating.class)
+                .setParameter("accountId", accountId)
                 .setParameter("movieId", movieId)
                 .getSingleResult();
     }
@@ -58,9 +51,10 @@ public class RatingRepository {
 
     //findByAccountId
     public List<Rating> findByAccountId(Long accountId) {
-        return entityManager
+        List<Rating> ratings= entityManager
                 .createQuery("SELECT r FROM Rating r WHERE r.account.id = :accountId", Rating.class)
                 .setParameter("accountId", accountId)
                 .getResultList();
+        return makeNoise.applyLapplaceNoise(ratings);
     }
 }

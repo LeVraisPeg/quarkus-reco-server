@@ -49,16 +49,12 @@ public class RatingService {
         }
     }
 
-    @Transactional
-    public List<Rating> getRatingsByUserId(Long userId) {
-        return ratingRepository.findByUserId(userId);
-    }
 
 
     // Récupérer la note d'un utilisateur pour un film par leurs IDs
     @Transactional
-    public Rating getRatingByUserIdAndMovieId(Long userId, Long movieId) {
-        return ratingRepository.findByUserIdAndMovieId(userId, movieId);
+    public Rating getRatingByAccountIdAndMovieId(Long userId, Long movieId) {
+        return ratingRepository.findByAccountIdAndMovieId(userId, movieId);
     }
 
 
