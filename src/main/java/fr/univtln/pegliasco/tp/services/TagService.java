@@ -1,6 +1,6 @@
 package fr.univtln.pegliasco.tp.services;
 
-import fr.univtln.pegliasco.tp.model.Account;
+
 import fr.univtln.pegliasco.tp.model.Tag;
 import fr.univtln.pegliasco.tp.model.User;
 import fr.univtln.pegliasco.tp.repository.TagRepository;
