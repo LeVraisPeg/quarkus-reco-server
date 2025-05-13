@@ -135,5 +135,5 @@ public class ExponentialMechanism {
             throw new IllegalStateException("No movie found for the given random value.");
         }
     }
-    //epsilon = 0.5
+    // epsilon = 0.5
 }
