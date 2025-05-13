@@ -69,8 +69,8 @@ public class AccountService {
             account = new Account();
             account.setId(id);
             account = accountRepository.update(account);
-            Logger logger = Logger.getLogger(AccountService.class.getName());
-            logger.info("New account created: " + account);
+            //Logger logger = Logger.getLogger(AccountService.class.getName());
+            //logger.info("New account created: " + account);
         }
         return account;
     }
