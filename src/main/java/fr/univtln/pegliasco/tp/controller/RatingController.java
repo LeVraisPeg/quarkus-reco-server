@@ -67,11 +67,11 @@ public class RatingController {
     @GET
     @Path("/account/{accountId}/movie/{movieId}")
     public Response getRatingByAccountIdAndMovieId(@PathParam("accountId") Long accountId, @PathParam("movieId") Long movieId) {
-        Rating rating = ratingService.getRatingByAccountIdAndMovieId(accountId, movieId);
-        if (rating != null) {
-            return Response.ok(rating).build();
+        List<Rating> ratings = ratingService.getRatingByAccountIdAndMovieId(accountId, movieId);
+        if (!ratings.isEmpty()) {
+            return Response.ok(ratings).build();
         } else {
-            return Response.status(Response.Status.NOT_FOUND).build();
+            return Response.ok(List.of()).build(); // Renvoie une liste vide
         }
     }
 }

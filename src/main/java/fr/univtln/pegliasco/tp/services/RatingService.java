@@ -6,6 +6,7 @@ import fr.univtln.pegliasco.tp.repository.RatingRepository;
 import jakarta.transaction.Transactional;
 import jakarta.enterprise.context.ApplicationScoped;
 import java.util.List;
+import java.util.Optional;
 
 @ApplicationScoped
 public class RatingService {
@@ -53,8 +54,9 @@ public class RatingService {
 
     // Récupérer la note d'un utilisateur pour un film par leurs IDs
     @Transactional
-    public Rating getRatingByAccountIdAndMovieId(Long userId, Long movieId) {
-        return ratingRepository.findByAccountIdAndMovieId(userId, movieId);
+    public List<Rating> getRatingByAccountIdAndMovieId(Long userId, Long movieId) {
+        List<Rating> ratings = ratingRepository.findByAccountIdAndMovieId(userId, movieId);
+        return ratings.isEmpty() ? List.of() : ratings;
     }
 
 

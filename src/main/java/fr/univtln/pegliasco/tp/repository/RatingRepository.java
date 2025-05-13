@@ -8,6 +8,7 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 
 import java.util.List;
+import java.util.Optional;
 
 @ApplicationScoped
 public class RatingRepository {
@@ -24,13 +25,12 @@ public class RatingRepository {
     }
 
     // findByAccountIdAndMovieId
-    public Rating findByAccountIdAndMovieId(Long accountId, Long movieId) {
-        return entityManager
-                .createQuery("SELECT r FROM Rating r WHERE r.account.id = :accountId AND r.movie.id = :movieId",
-                        Rating.class)
+    public List<Rating> findByAccountIdAndMovieId(Long accountId, Long movieId) {
+        String query = "SELECT r FROM Rating r WHERE r.account.id = :accountId AND r.movie.id = :movieId";
+        return entityManager.createQuery(query, Rating.class)
                 .setParameter("accountId", accountId)
                 .setParameter("movieId", movieId)
-                .getSingleResult();
+                .getResultList();
     }
 
     public void update(Rating rating) {
