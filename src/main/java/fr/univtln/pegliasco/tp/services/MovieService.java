@@ -6,6 +6,7 @@ import fr.univtln.pegliasco.tp.repository.MovieRepository;
 import jakarta.transaction.Transactional;
 import jakarta.enterprise.context.ApplicationScoped;
 import java.util.List;
+import java.util.Map;
 
 @ApplicationScoped
 public class MovieService {
@@ -15,9 +16,16 @@ public class MovieService {
         this.movieRepository = movieRepository;
     }
 
+
     @Transactional
     public List<Movie> getAllMovies() {
-        return movieRepository.findAll();
+        List<Movie> movies = movieRepository.findAll();
+        movies.forEach(movie -> {
+            if (movie.getRatings() != null) {
+                movie.getRatings().size();
+            }
+        });
+        return movies;
     }
 
     @Transactional
@@ -29,7 +37,6 @@ public class MovieService {
     public void addMovie(Movie movie) {
         movieRepository.save(movie);
     }
-
 
 
     @Transactional
@@ -93,10 +100,43 @@ public class MovieService {
     public List<Movie> getMoviesByTitle(String title) {
         return movieRepository.findByTitle(title);
     }
+
     // Récupérer les films par année
     @Transactional
     public List<Movie> getMoviesByYear(int year) {
         return movieRepository.findByYear(year);
     }
-}
 
+
+
+    @Transactional
+    public void saveOrUpdate(Movie movie) {
+        if (movie.getId() != null && movieRepository.existsById(movie.getId())) {
+            // Update existing entity
+            movieRepository.merge(movie);
+        } else {
+            // Persist new entity
+            movieRepository.persist(movie);
+        }
+    }
+
+    //find or create by id
+    @Transactional
+    public Movie findOrCreateById(Long id) {
+        Movie movie = movieRepository.findById(id);
+        if (movie == null) {
+            movie = new Movie();
+            movie.setId(id);
+            movieRepository.persist(movie);
+        }
+        return movie;
+    }
+
+    //findAllAsMap
+    public Map<Long, Movie> findAllAsMap() {
+        return movieRepository.findAllAsMap();
+    }
+
+
+
+}

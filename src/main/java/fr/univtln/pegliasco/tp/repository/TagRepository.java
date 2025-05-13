@@ -1,5 +1,6 @@
 package fr.univtln.pegliasco.tp.repository;
 
+import fr.univtln.pegliasco.tp.model.Account;
 import fr.univtln.pegliasco.tp.model.Tag;
 
 import jakarta.enterprise.context.ApplicationScoped;
@@ -40,4 +41,6 @@ public class TagRepository {
     public Tag findById(Long id) {
         return entityManager.find(Tag.class, id);
     }
+
+
 }

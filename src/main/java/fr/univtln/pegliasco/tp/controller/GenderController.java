@@ -56,6 +56,13 @@ public class GenderController {
         }
     }
 
+    // Trouver ou créer un genre par son nom
+    @GET
+    @Path("/{name}")
+    public Response findOrCreateGender(@PathParam("name") String name) {
+        Gender gender = genderService.findOrCreateByName(name);
+        return Response.ok(gender).build();
+    }
 
 
 }

@@ -1,6 +1,8 @@
 package fr.univtln.pegliasco.tp.services;
 
+import fr.univtln.pegliasco.tp.model.Account;
 import fr.univtln.pegliasco.tp.model.Tag;
+import fr.univtln.pegliasco.tp.model.User;
 import fr.univtln.pegliasco.tp.repository.TagRepository;
 import jakarta.transaction.Transactional;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -18,7 +20,13 @@ public class TagService {
     // Récupérer tous les tags
     @Transactional
     public List<Tag> getAllTags() {
-        return tagRepository.findAll();
+        List<Tag> tags = tagRepository.findAll();
+        tags.forEach(tag -> {
+            if (tag.getAccount() instanceof User user && user.getTags() != null) {
+                user.getTags().size();
+            }
+        });
+        return tags;
     }
 
     // Ajouter un tag
@@ -49,4 +57,22 @@ public class TagService {
     public Tag getTagById(Long id) {
         return tagRepository.findById(id);
     }
+
+    //saveOrUpdate
+    @Transactional
+    public void saveOrUpdate(Tag tag) {
+        if (tag.getId() == null) {
+            tagRepository.add(tag);
+        } else {
+            Tag existingTag = tagRepository.findById(tag.getId());
+            if (existingTag != null) {
+                existingTag.setName(tag.getName());
+                existingTag.setMovies(tag.getMovies());
+                tagRepository.update(existingTag);
+            }
+        }
+    }
+
+
+
 }

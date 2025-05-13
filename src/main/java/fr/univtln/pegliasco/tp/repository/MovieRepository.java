@@ -1,12 +1,17 @@
 package fr.univtln.pegliasco.tp.repository;
 
+import fr.univtln.pegliasco.tp.model.Gender;
 import fr.univtln.pegliasco.tp.model.Movie;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @ApplicationScoped
 public class MovieRepository {
@@ -20,9 +25,35 @@ public class MovieRepository {
     public Movie findById(Long id) {
         return entityManager.find(Movie.class, id);
     }
+
     public void save(Movie movie) {
-        entityManager.persist(movie);
+        if (movie.getId() == null) {
+            // Nouvelle entité, on persiste
+            entityManager.persist(movie);
+        } else {
+            movie = entityManager.merge(movie);
+        }
+
+        if (movie.getGenders() != null) {
+            List<Gender> managedGenders = new ArrayList<>();
+            for (Gender gender : movie.getGenders()) {
+                if (gender.getId() != null) {
+                    gender = entityManager.find(Gender.class, gender.getId());
+                } else {
+                    entityManager.persist(gender);
+                }
+                managedGenders.add(gender);
+            }
+            movie.setGenders(managedGenders);
+        }
     }
+
+
+
+    public void merge(Movie movie) {
+        entityManager.merge(movie);
+    }
+
     public void update(Movie movie) {
         entityManager.merge(movie);
     }
@@ -55,4 +86,30 @@ public class MovieRepository {
                 .setParameter("gender", gender)
                 .getResultList();
     }
+
+
+    public void flushAndClear() {
+        entityManager.flush();
+        entityManager.clear();
+    }
+
+    // Vérifier si un film existe par son ID
+    public boolean existsById(Long id) {
+        return entityManager.createQuery("SELECT COUNT(m) FROM Movie m WHERE m.id = :id", Long.class)
+                .setParameter("id", id)
+                .getSingleResult() > 0;
+    }
+
+    //persister un film
+    public void persist(Movie movie) {
+        entityManager.persist(movie);
+        }
+
+
+    public Map<Long, Movie> findAllAsMap() {
+        return entityManager.createQuery("SELECT m FROM Movie m", Movie.class)
+                .getResultStream()
+                .collect(Collectors.toMap(Movie::getId, Function.identity()));
+    }
+
 }

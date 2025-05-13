@@ -1,5 +1,6 @@
 package fr.univtln.pegliasco.tp.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -20,12 +21,15 @@ public class Movie {
     @Column
     private int year;
 
-    @OneToMany(mappedBy = "movie")
+    @OneToMany(mappedBy = "movie", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
+    @JsonIgnore
     private List<Rating> ratings;
 
-    @ManyToMany
+    @ManyToMany(fetch = FetchType.EAGER)
+    @JsonIgnore
     private List<Gender> genders;
 
     @ManyToMany
+    @JsonIgnore
     private List<Tag> tags;
 }
