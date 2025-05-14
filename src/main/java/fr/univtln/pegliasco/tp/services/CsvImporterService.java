@@ -16,6 +16,8 @@
     import java.io.FileReader;
     import java.util.concurrent.ExecutorService;
     import java.util.concurrent.Executors;
+    import java.util.regex.Matcher;
+    import java.util.regex.Pattern;
     import java.util.stream.Collectors;
 
     @ApplicationScoped
@@ -51,6 +53,7 @@
                         float ratingValue = Float.parseFloat(tokens[2]);
 
                         Account account = accountCache.computeIfAbsent(userId, id -> accountService.findOrCreateById(id));
+                        if (account == null) continue;
                         Movie movie = movieCache.get(movieId);
                         if (movie == null) continue;
 
@@ -107,54 +110,6 @@
             }
         }
 
-
-
-
-
-        private void persistBatchRatingWithTransaction(List<Rating> ratings) {
-            // Créer un nouvel EntityManager pour chaque thread
-            EntityManager entityManager = em.getEntityManagerFactory().createEntityManager();
-            EntityTransaction transaction = entityManager.getTransaction();
-
-            try {
-                // Démarrer la transaction
-                transaction.begin();
-
-                for (int i = 0; i < ratings.size(); i++) {
-                    Rating rating = ratings.get(i);
-
-                    // Merge pour attacher les entités
-                    Account managedAccount = entityManager.merge(rating.getAccount());
-                    Movie managedMovie = entityManager.merge(rating.getMovie());
-
-                    // Associer les entités gérées au rating
-                    rating.setAccount(managedAccount);
-                    rating.setMovie(managedMovie);
-
-                    // Persist le rating
-                    entityManager.persist(rating);
-
-                    if (i % 1000 == 0) {  // Flush tous les 1000 éléments
-                        entityManager.flush();
-                        entityManager.clear();  // Nettoyer le contexte de persistance
-                    }
-                }
-
-                entityManager.flush();  // Flush final
-                transaction.commit();  // Commit la transaction
-
-            } catch (Exception e) {
-                // En cas d'erreur, annuler la transaction
-                if (transaction.isActive()) {
-                    transaction.rollback();
-                }
-                e.printStackTrace();
-            } finally {
-                entityManager.close();  // Fermer l'EntityManager
-            }
-        }
-
-
         public void importMoviesFromCsv(String filePath) throws IOException, CsvValidationException {
             final int batchSize = 5000;
             List<Movie> allMovies = new ArrayList<>();
@@ -168,7 +123,29 @@
                 while ((tokens = csvReader.readNext()) != null) {
                     if (tokens.length >= 3) {
                         Movie movie = new Movie();
-                        movie.setTitle(tokens[1].trim());
+                        String rawTitle = tokens[1].trim();
+
+                        // Extraire l'année
+                        Pattern pattern = Pattern.compile("\\((\\d{4})\\)");
+                        Matcher matcher = pattern.matcher(rawTitle);
+                        if (matcher.find()) {
+                            int year = Integer.parseInt(matcher.group(1));
+                            movie.setYear(year);
+                        } else {
+                            movie.setYear(0); // ou -1
+                        }
+
+                        String cleanTitle = rawTitle.replaceAll("\\s*\\(\\d{4}\\)", "").trim();
+
+                        // Corriger les titres du type "Title, The" → "The Title"
+                        Pattern articlePattern = Pattern.compile("^(.*),\\s*(The|A|An)$", Pattern.CASE_INSENSITIVE);
+                        Matcher articleMatcher = articlePattern.matcher(cleanTitle);
+                        if (articleMatcher.find()) {
+                            cleanTitle = articleMatcher.group(2) + " " + articleMatcher.group(1);
+                        }
+
+                        movie.setTitle(cleanTitle);
+
 
                         String[] genreNames = tokens[2].split("\\|");
                         List<Gender> genderList = new ArrayList<>();

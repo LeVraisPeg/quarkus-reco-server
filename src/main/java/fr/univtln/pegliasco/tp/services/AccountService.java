@@ -73,9 +73,7 @@ public class AccountService {
             account.setEmail(account.getPrenom().toLowerCase() + "." + account.getNom().toLowerCase() + "@example.com");
             account.setPassword(faker.internet().password(8, 12, true, true));
             account.setRole(Account.Role.USER);
-            account = accountRepository.update(account);
-            //Logger logger = Logger.getLogger(AccountService.class.getName());
-            //logger.info("New account created: " + account);
+            accountRepository.persist(account); // Use persist instead of update
         }
         return account;
     }

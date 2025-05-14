@@ -17,12 +17,14 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import java.util.logging.Logger;
+
 
 @ApplicationScoped
 public class AccountRepository {
     @PersistenceContext
     private EntityManager em;
-
+    Logger logger;
     private static final int SALT_LENGTH = 16;
 
     // Récupérer tous les comptes
@@ -53,7 +55,12 @@ public class AccountRepository {
         String salt = generateSalt();
         String hashedPassword = hashPassword(account.getPassword(), salt);
         account.setPassword(hashedPassword + ":" + salt);
-        em.merge(account);
+        try {
+            em.merge(account);
+        } catch (Exception e) {
+            // Gérer l'exception si nécessaire
+            logger.info("Erreur lors de la mise à jour du compte : " + e.getMessage());
+        }
         return account;
     }
     // Supprimer un compte
