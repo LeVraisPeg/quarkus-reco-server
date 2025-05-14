@@ -17,13 +17,13 @@ public class RatingController {
     @Inject
     RatingService ratingService;
 
+    // Récupérer toutes les évaluations
     @GET
     public List<Rating> getAllRatings(@QueryParam("page") @DefaultValue("0") int page,
                                       @QueryParam("size") @DefaultValue("1000") int size) {
         List<Rating> pagedRatings = ratingService.getRatingsPaginated(page, size);
         return MakeNoise.applyLapplaceNoise(pagedRatings);
     }
-
 
     // Ajouter une évaluation
     @POST
