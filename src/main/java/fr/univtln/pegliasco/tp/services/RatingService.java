@@ -2,11 +2,15 @@ package fr.univtln.pegliasco.tp.services;
 
 import fr.univtln.pegliasco.tp.model.Rating;
 import fr.univtln.pegliasco.tp.model.User;
+import fr.univtln.pegliasco.tp.model.view.RatingId;
 import fr.univtln.pegliasco.tp.repository.RatingRepository;
 import jakarta.transaction.Transactional;
 import jakarta.enterprise.context.ApplicationScoped;
+
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.List;
-import java.util.Optional;
 
 @ApplicationScoped
 public class RatingService {
@@ -14,6 +18,19 @@ public class RatingService {
 
     public RatingService(RatingRepository ratingRepository) {
         this.ratingRepository = ratingRepository;
+    }
+
+    public static File generateCSV(List<RatingId> ratings) throws IOException {
+        File tempFile = File.createTempFile("people-", ".csv");
+        try (FileWriter writer = new FileWriter(tempFile)) {
+            writer.append("userId,movieId,rating\n");
+            for (RatingId p : ratings) {
+                writer.append(String.valueOf(p.userId())).append(",")
+                        .append(String.valueOf(p.movieId())).append(",")
+                        .append(String.valueOf(p.rating())).append("\n");
+            }
+        }
+        return tempFile;
     }
 
     @Transactional
@@ -25,6 +42,10 @@ public class RatingService {
             }
         });
         return ratings;
+    }
+
+    public List<RatingId> getAllRatingsId() {
+        return ratingRepository.findAllId();
     }
 
     @Transactional
@@ -41,7 +62,6 @@ public class RatingService {
         return ratings;
     }
 
-
     @Transactional
     public void addRating(Rating rating) {
         ratingRepository.add(rating);
@@ -51,10 +71,12 @@ public class RatingService {
     public void deleteRating(Long id) {
         ratingRepository.delete(id);
     }
+
     @Transactional
     public Rating getRatingById(Long id) {
         return ratingRepository.findById(id);
     }
+
     // Mettre à jour une évaluation par son ID
     @Transactional
     public void updateRating(Long id, Rating rating) {
@@ -65,8 +87,6 @@ public class RatingService {
         }
     }
 
-
-
     // Récupérer la note d'un utilisateur pour un film par leurs IDs
     @Transactional
     public List<Rating> getRatingByAccountIdAndMovieId(Long userId, Long movieId) {
@@ -74,8 +94,7 @@ public class RatingService {
         return ratings.isEmpty() ? List.of() : ratings;
     }
 
-
-    //save or update
+    // save or update
     @Transactional
     public void saveOrUpdate(Rating rating) {
         if (rating.getId() == null) {
@@ -85,11 +104,10 @@ public class RatingService {
         }
     }
 
-    //get rating by account id
+    // get rating by account id
     @Transactional
     public List<Rating> getRatingsByAccountId(Long accountId) {
         return ratingRepository.findByAccountId(accountId);
     }
-
 
 }
