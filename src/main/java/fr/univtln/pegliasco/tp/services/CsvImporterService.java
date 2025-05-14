@@ -5,6 +5,7 @@
     import jakarta.enterprise.context.ApplicationScoped;
     import jakarta.inject.Inject;
     import jakarta.persistence.EntityManager;
+    import jakarta.persistence.EntityManagerFactory;
     import jakarta.persistence.EntityTransaction;
 
     import java.io.IOException;
@@ -28,16 +29,17 @@
         AccountService accountService;
         @Inject
         EntityManager em;
+        @Inject
+        EntityManagerFactory entityManagerFactory;
+
 
         public void importRatingsFromCsv(String filePath) throws IOException, CsvValidationException {
             final int batchSize = 5000;
-            List<Rating> allRatings = new ArrayList<>();
+            List<Rating> currentBatch = new ArrayList<>(batchSize);
 
-            // Préchargement des comptes et films existants
             Map<Long, Account> accountCache = accountService.findAllAsMap();
             Map<Long, Movie> movieCache = movieService.findAllAsMap();
 
-            // Lecture du CSV
             try (CSVReader csvReader = new CSVReader(new FileReader(filePath))) {
                 String[] tokens;
                 csvReader.readNext(); // skip header
@@ -48,40 +50,64 @@
                         Long movieId = Long.parseLong(tokens[1]);
                         float ratingValue = Float.parseFloat(tokens[2]);
 
-                        // Récupération du compte (ou création si nécessaire)
                         Account account = accountCache.computeIfAbsent(userId, id -> accountService.findOrCreateById(id));
-
-
-                        // Récupération du film (ou null si inconnu)
                         Movie movie = movieCache.get(movieId);
-                        if (movie == null) continue; // ignorer les ratings sans film
+                        if (movie == null) continue;
 
-                        // Création du rating
                         Rating rating = new Rating();
                         rating.setRate(ratingValue);
                         rating.setAccount(account);
                         rating.setMovie(movie);
+                        currentBatch.add(rating);
 
-                        allRatings.add(rating);
+                        if (currentBatch.size() == batchSize) {
+                            persistBatchRating(currentBatch);
+                            currentBatch.clear();
+                        }
                     }
                 }
+
+                // Dernier batch
+                if (!currentBatch.isEmpty()) {
+                    persistBatchRating(currentBatch);
+                }
+
+                System.out.println("Import terminé depuis : " + filePath);
             }
-
-            // Batch persist
-            List<List<Rating>> batches = new ArrayList<>();
-            for (int i = 0; i < allRatings.size(); i += batchSize) {
-                batches.add(allRatings.subList(i, Math.min(i + batchSize, allRatings.size())));
-            }
-
-            ExecutorService executor = Executors.newFixedThreadPool(4);
-            List<CompletableFuture<Void>> futures = batches.stream()
-                    .map(batch -> CompletableFuture.runAsync(() -> persistBatchRatingWithTransaction(batch), executor))
-                    .toList();
-            CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
-            executor.shutdown();
-
-            System.out.println("Imported ratings from: " + filePath);
         }
+
+
+
+        private void persistBatchRating(List<Rating> ratings) {
+            EntityManager em = entityManagerFactory.createEntityManager();
+            EntityTransaction tx = em.getTransaction();
+
+            try {
+                tx.begin();
+
+                for (int i = 0; i < ratings.size(); i++) {
+                    Rating r = ratings.get(i);
+                    em.persist(r);
+
+                    if (i % 1000 == 0) {
+                        em.flush();
+                        em.clear();
+                    }
+                }
+
+                em.flush();
+                em.clear();
+                tx.commit();
+
+            } catch (Exception e) {
+                if (tx.isActive()) tx.rollback();
+                e.printStackTrace();
+            } finally {
+                em.close();
+            }
+        }
+
+
 
 
 

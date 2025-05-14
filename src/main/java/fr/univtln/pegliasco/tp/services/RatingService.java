@@ -28,6 +28,21 @@ public class RatingService {
     }
 
     @Transactional
+    public List<Rating> getRatingsPaginated(int page, int size) {
+        List<Rating> ratings = ratingRepository.findPaginated(page, size);
+
+        // Force l'initialisation des collections liées (si besoin)
+        ratings.forEach(rating -> {
+            if (rating.getAccount() instanceof User user && user.getRatings() != null) {
+                user.getRatings().size();
+            }
+        });
+
+        return ratings;
+    }
+
+
+    @Transactional
     public void addRating(Rating rating) {
         ratingRepository.add(rating);
     }

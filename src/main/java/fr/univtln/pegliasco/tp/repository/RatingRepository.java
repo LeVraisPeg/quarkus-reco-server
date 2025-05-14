@@ -20,6 +20,14 @@ public class RatingRepository {
         return entityManager.createQuery("SELECT r FROM Rating r", Rating.class).getResultList();
     }
 
+    public List<Rating> findPaginated(int page, int size) {
+        return entityManager.createQuery("SELECT r FROM Rating r", Rating.class)
+                .setFirstResult(page * size)
+                .setMaxResults(size)
+                .getResultList();
+    }
+
+
     public Rating findById(Long id) {
         return entityManager.find(Rating.class, id);
     }
