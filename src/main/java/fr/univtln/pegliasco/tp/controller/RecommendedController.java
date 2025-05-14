@@ -1,5 +1,6 @@
 package fr.univtln.pegliasco.tp.controller;
 
+import fr.univtln.pegliasco.tp.model.Movie;
 import fr.univtln.pegliasco.tp.services.RecommendedService;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.*;
@@ -12,9 +13,9 @@ public class RecommendedController {
     @Inject
     RecommendedService recommendedService;
 
+
     @GET
-    public List<List<Object>> getRecommendations(@QueryParam("id") Long id,
-                                         @QueryParam("nb") int nb) {
+    public List<Movie> getRecommendations(@QueryParam("id") Long id, @QueryParam("nb") int nb){
         return recommendedService.fetchRecommendations(id, nb);
     }
 }

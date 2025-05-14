@@ -26,6 +26,13 @@ public class MovieRepository {
         return entityManager.find(Movie.class, id);
     }
 
+    public List<Movie> findByIds(List<Long> ids) {
+        return entityManager.createQuery("SELECT m FROM Movie m WHERE m.id IN :ids", Movie.class)
+                .setParameter("ids", ids)
+                .getResultList();
+    }
+
+
     public void save(Movie movie) {
         if (movie.getId() == null) {
             // Nouvelle entité, on persiste

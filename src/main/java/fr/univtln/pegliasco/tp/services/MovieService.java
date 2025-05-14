@@ -33,6 +33,12 @@ public class MovieService {
         return movieRepository.findById(id);
     }
 
+    //getMoviesByIds
+    @Transactional
+    public List<Movie> getMoviesByIds(List<Long> ids) {
+        return movieRepository.findByIds(ids);
+    }
+
     @Transactional
     public void addMovie(Movie movie) {
         movieRepository.save(movie);
