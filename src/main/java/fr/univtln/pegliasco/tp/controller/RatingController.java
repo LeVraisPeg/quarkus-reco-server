@@ -1,6 +1,5 @@
 package fr.univtln.pegliasco.tp.controller;
 
-import fr.univtln.pegliasco.encryption.differential_privacy.MakeNoise;
 import fr.univtln.pegliasco.tp.model.Rating;
 import fr.univtln.pegliasco.tp.services.RatingService;
 
@@ -9,6 +8,8 @@ import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import java.util.List;
+
+import org.apache.hadoop.classification.InterfaceAudience.Public;
 
 @Path("/rating")
 @Produces(MediaType.APPLICATION_JSON)
@@ -20,7 +21,7 @@ public class RatingController {
     // Récupérer toutes les évaluations
     @GET
     public List<Rating> getAllRatings() {
-        return MakeNoise.applyLapplaceNoise(ratingService.getAllRatings());
+        return ratingService.getAllRatings();
     }
 
     // Ajouter une évaluation
@@ -52,7 +53,7 @@ public class RatingController {
     public Response getRatingById(@PathParam("id") Long id) {
         Rating rating = ratingService.getRatingById(id);
         if (rating != null) {
-            return Response.ok(MakeNoise.applyLapplaceNoise(rating)).build();
+            return Response.ok(rating).build();
         } else {
             return Response.status(Response.Status.NOT_FOUND).build();
         }
@@ -70,11 +71,11 @@ public class RatingController {
     @Path("/account/{accountId}/movie/{movieId}")
     public Response getRatingByAccountIdAndMovieId(@PathParam("accountId") Long accountId,
             @PathParam("movieId") Long movieId) {
-        List<Rating> ratings = ratingService.getRatingByAccountIdAndMovieId(accountId, movieId);
-        if (!ratings.isEmpty()) {
-            return Response.ok(MakeNoise.applyLapplaceNoise(ratings)).build();
+        List<Rating> rating = ratingService.getRatingByAccountIdAndMovieId(accountId, movieId);
+        if (rating != null) {
+            return Response.ok(rating).build();
         } else {
-            return Response.ok(List.of()).build(); // Renvoie une liste vide
+            return Response.status(Response.Status.NOT_FOUND).build();
         }
     }
 }
