@@ -8,7 +8,10 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.NoResultException;
 import jakarta.persistence.PersistenceContext;
+import org.apache.commons.codec.binary.Hex;
+import org.apache.commons.codec.digest.DigestUtils;
 
+import java.security.SecureRandom;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -19,6 +22,8 @@ import java.util.stream.Collectors;
 public class AccountRepository {
     @PersistenceContext
     private EntityManager em;
+
+    private static final int SALT_LENGTH = 16;
 
     // Récupérer tous les comptes
     public List<Account> findAll() {
@@ -52,6 +57,33 @@ public class AccountRepository {
     public void delete(Account account) {
         em.remove(em.contains(account) ? account : em.merge(account));
     }
+
+    private String hashPassword(String password, String salt) {
+        // Ajouter le salt au mot de passe avant de le hacher
+        String saltedPassword = password + salt;
+        return DigestUtils.sha256Hex(saltedPassword); // Hachage avec SHA-256
+    }
+
+    private String generateSalt() {
+        SecureRandom random = new SecureRandom();
+        byte[] salt = new byte[SALT_LENGTH];
+        random.nextBytes(salt);
+        return Hex.encodeHexString(salt);
+    }
+
+    private boolean checkPassword(String password, String storedPassword) {
+        // Extraire le mot de passe haché et le salt à partir de la chaîne "hashedPassword:salt"
+        String[] parts = storedPassword.split(":");
+        String hashedStoredPassword = parts[0];  // Le mot de passe haché stocké
+        String salt = parts[1];  // Le salt utilisé pour hacher le mot de passe
+
+        // Hacher le mot de passe saisi avec le même salt
+        String hashedPassword = hashPassword(password, salt);
+
+        // Comparer les deux hachages
+        return hashedPassword.equals(hashedStoredPassword);
+    }
+
     // Trouver un compte par son nom et mot de passe
     public Account findByNomAndPassword(String nom, String password) {
         try {

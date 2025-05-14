@@ -8,6 +8,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 
+
+
 @ApplicationScoped
 public class AccountService {
     private final AccountRepository accountRepository;
@@ -68,6 +70,12 @@ public class AccountService {
         if (account == null) {
             account = new Account();
             account.setId(id);
+            account.setNom("Nom"+id);
+            account.setPrenom("Prenom"+id);
+            account.setEmail("Prenom"+id+"Nom@exemple.com");
+            account.setPassword("password"+id);
+            account.setRole(Account.Role.USER);
+
             account = accountRepository.update(account);
             //Logger logger = Logger.getLogger(AccountService.class.getName());
             //logger.info("New account created: " + account);

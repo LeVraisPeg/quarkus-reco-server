@@ -28,7 +28,7 @@ public class Account {
     @Column
     public Role role;
 
-    private enum Role {
+    public enum Role {
         USER,
         ADMIN
     }
