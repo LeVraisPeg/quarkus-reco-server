@@ -2,13 +2,12 @@ package fr.univtln.pegliasco.tp.repository;
 
 import fr.univtln.pegliasco.encryption.differential_privacy.MakeNoise;
 import fr.univtln.pegliasco.tp.model.Rating;
-
+import fr.univtln.pegliasco.tp.model.view.RatingId;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 
 import java.util.List;
-import java.util.Optional;
 
 @ApplicationScoped
 public class RatingRepository {
@@ -26,7 +25,6 @@ public class RatingRepository {
                 .setMaxResults(size)
                 .getResultList();
     }
-
 
     public Rating findById(Long id) {
         return entityManager.find(Rating.class, id);
@@ -63,5 +61,11 @@ public class RatingRepository {
                 .setParameter("accountId", accountId)
                 .getResultList();
         return MakeNoise.applyLapplaceNoise(ratings);
+    }
+
+    public List<RatingId> findAllId() {
+        return entityManager.createQuery(
+                "SELECT new RatingId(r.account.id, r.movie.id,r.rate) FROM Rating r",
+                RatingId.class).getResultList();
     }
 }

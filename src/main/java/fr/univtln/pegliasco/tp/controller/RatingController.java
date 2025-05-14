@@ -2,13 +2,25 @@ package fr.univtln.pegliasco.tp.controller;
 
 import fr.univtln.pegliasco.encryption.differential_privacy.MakeNoise;
 import fr.univtln.pegliasco.tp.model.Rating;
+import fr.univtln.pegliasco.tp.model.view.RatingId;
 import fr.univtln.pegliasco.tp.services.RatingService;
 
 import jakarta.inject.Inject;
 import jakarta.ws.rs.*;
+import jakarta.ws.rs.client.ClientBuilder;
+import jakarta.ws.rs.client.Client;
+
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+
+import java.io.File;
+import java.io.IOException;
 import java.util.List;
+import org.glassfish.jersey.media.multipart.FormDataMultiPart;
+import org.glassfish.jersey.media.multipart.file.FileDataBodyPart;
+import org.glassfish.jersey.media.multipart.MultiPartFeature;
+
+import jakarta.ws.rs.client.Entity;
 
 @Path("/rating")
 @Produces(MediaType.APPLICATION_JSON)
@@ -20,9 +32,25 @@ public class RatingController {
     // Récupérer toutes les évaluations
     @GET
     public List<Rating> getAllRatings(@QueryParam("page") @DefaultValue("0") int page,
-                                      @QueryParam("size") @DefaultValue("1000") int size) {
+            @QueryParam("size") @DefaultValue("1000") int size) {
         List<Rating> pagedRatings = ratingService.getRatingsPaginated(page, size);
         return MakeNoise.applyLapplaceNoise(pagedRatings);
+    }
+
+    @GET
+    @Path("/file")
+    @Produces("text/csv")
+    public Response getAllRatingsAsCSV() {
+        List<RatingId> pagedRatings = ratingService.getAllRatingsId();
+        try {
+            File csv = RatingService.generateCSV(pagedRatings);
+            return Response.ok(csv)
+                    .header("Content-Disposition", "attachment; filename=\"ratings.csv\"")
+                    .build();
+        } catch (IOException e) {
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("Error generating CSV").build();
+        }
+
     }
 
     // Ajouter une évaluation
