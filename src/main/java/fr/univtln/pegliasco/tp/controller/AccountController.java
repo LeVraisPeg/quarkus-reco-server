@@ -48,9 +48,9 @@ public class AccountController {
         if (existingAccount == null) {
             return Response.status(Response.Status.NOT_FOUND).build();
         }
-        account.setId(id); // S'assurer que l'ID est bien celui passé en paramètre
+        account.setId(id);
         accountService.updateAccount(account);
-        return Response.ok().build();
+        return Response.ok(account).build();
     }
 
     // Supprimer un compte

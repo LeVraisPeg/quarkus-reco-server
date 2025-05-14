@@ -50,6 +50,9 @@ public class AccountRepository {
     }
     // Mettre à jour un compte
     public Account update(Account account) {
+        String salt = generateSalt();
+        String hashedPassword = hashPassword(account.getPassword(), salt);
+        account.setPassword(hashedPassword + ":" + salt);
         em.merge(account);
         return account;
     }
@@ -87,14 +90,20 @@ public class AccountRepository {
     // Trouver un compte par son nom et mot de passe
     public Account findByNomAndPassword(String nom, String password) {
         try {
-            return em.createQuery("SELECT a FROM Account a WHERE a.nom = :nom AND a.password = :password", Account.class)
+            // Récupérer l'enseignant par email
+            Account account = em.createQuery("SELECT a FROM Account a WHERE a.nom = :nom", Account.class)
                     .setParameter("nom", nom)
-                    .setParameter("password", password)
                     .getSingleResult();
+            // Si l'enseignant existe et que le mot de passe est correct
+            if (account != null && checkPassword(password, account.getPassword())) {
+                return account;
+            }
+            return null;
         } catch (NoResultException e) {
             return null;
         }
     }
+
     // Récupérer un compte par son rôle
     public List<Account> findByRole(String role) {
         return em.createQuery("SELECT a FROM Account a WHERE a.role = :role", Account.class)

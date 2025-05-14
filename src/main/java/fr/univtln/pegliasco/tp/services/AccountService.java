@@ -7,6 +7,7 @@ import jakarta.enterprise.context.ApplicationScoped;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
+import com.github.javafaker.Faker;
 
 
 
@@ -38,13 +39,9 @@ public class AccountService {
     // Mettre à jour un compte
     @Transactional
     public void updateAccount(Account account) {
-        Account existingAccount = accountRepository.findById(account.getId());
-        if (existingAccount != null) {
-            existingAccount.setEmail(account.getEmail());
-            existingAccount.setPassword(account.getPassword());
-            accountRepository.persist(existingAccount);
-        }
+        accountRepository.update(account);
     }
+
     // Supprimer un compte
     @Transactional
     public void deleteAccount(Long id) {
@@ -68,14 +65,14 @@ public class AccountService {
     public Account findOrCreateById(Long id) {
         Account account = accountRepository.findById(id);
         if (account == null) {
+            Faker faker = new Faker();
             account = new Account();
             account.setId(id);
-            account.setNom("Nom"+id);
-            account.setPrenom("Prenom"+id);
-            account.setEmail("Prenom"+id+"Nom@exemple.com");
-            account.setPassword("password"+id);
+            account.setNom(faker.name().lastName());
+            account.setPrenom(faker.name().firstName());
+            account.setEmail(account.getPrenom().toLowerCase() + "." + account.getNom().toLowerCase() + "@example.com");
+            account.setPassword(faker.internet().password(8, 12, true, true));
             account.setRole(Account.Role.USER);
-
             account = accountRepository.update(account);
             //Logger logger = Logger.getLogger(AccountService.class.getName());
             //logger.info("New account created: " + account);
