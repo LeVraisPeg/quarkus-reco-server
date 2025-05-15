@@ -60,20 +60,32 @@ public class AccountService {
         return accountRepository.findByRole(role);
     }
 
+    //find by email
+    public Account findByEmail(String email) {
+        return accountRepository.findByEmail(email);
+    }
+
     //find or create account by id
     @Transactional
     public Account findOrCreateById(Long id) {
         Account account = accountRepository.findById(id);
         if (account == null) {
             Faker faker = new Faker();
+            String email;
+            do {
+                String nom = faker.name().lastName();
+                String prenom = faker.name().firstName();
+                email = prenom.toLowerCase() + "." + nom.toLowerCase() + "@example.com";
+            } while (accountRepository.findByEmail(email) != null);
+
             account = new Account();
             account.setId(id);
             account.setNom(faker.name().lastName());
             account.setPrenom(faker.name().firstName());
-            account.setEmail(account.getPrenom().toLowerCase() + "." + account.getNom().toLowerCase() + "@example.com");
+            account.setEmail(email);
             account.setPassword(faker.internet().password(8, 12, true, true));
             account.setRole(Account.Role.USER);
-            accountRepository.persist(account); // Use persist instead of update
+            accountRepository.persist(account);
         }
         return account;
     }

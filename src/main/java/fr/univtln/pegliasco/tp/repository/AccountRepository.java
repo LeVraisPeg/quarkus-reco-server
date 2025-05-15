@@ -114,7 +114,7 @@ public class AccountRepository {
     // Récupérer un compte par son rôle
     public List<Account> findByRole(String role) {
         return em.createQuery("SELECT a FROM Account a WHERE a.role = :role", Account.class)
-                .setParameter("role", role)
+                .setParameter("role", Account.Role.valueOf(role))
                 .getResultList();
     }
 
@@ -122,6 +122,16 @@ public class AccountRepository {
         return em.createQuery("SELECT a FROM Account a", Account.class)
                 .getResultStream()
                 .collect(Collectors.toMap(Account::getId, Function.identity()));
+    }
+
+    public Account findByEmail(String email) {
+        try {
+            return em.createQuery("SELECT a FROM Account a WHERE a.email = :email", Account.class)
+                    .setParameter("email", email)
+                    .getSingleResult();
+        } catch (NoResultException e) {
+            return null;
+        }
     }
 
 }

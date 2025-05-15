@@ -42,13 +42,17 @@ public class AccountController {
 
     // Mettre à jour un compte
     @PUT
-    @Path("/{id}")
-    public Response updateAccount(@PathParam("id") Long id, Account account) {
+    @Path("/{id}/{nom}/{prenom}/{email}/{password}/{Role}")
+    public Response updateAccount(@PathParam("id") Long id, @PathParam("nom")String nom, @PathParam("prenom")String prenom, @PathParam("email")String email, @PathParam("password")String password, Account account) {
         Account existingAccount = accountService.getAccountById(id);
         if (existingAccount == null) {
             return Response.status(Response.Status.NOT_FOUND).build();
         }
         account.setId(id);
+        account.setNom(nom);
+        account.setPrenom(prenom);
+        account.setEmail(email);
+        account.setPassword(password);
         accountService.updateAccount(account);
         return Response.ok(account).build();
     }
@@ -93,9 +97,6 @@ public class AccountController {
     @Path("/role/{role}")
     public Response getAccountByRole(@PathParam("role") String role) {
         List<Account> accounts = accountService.getAccountByRole(role);
-        if (accounts.isEmpty()) {
-            return Response.status(Response.Status.NOT_FOUND).build();
-        }
         return Response.ok(accounts).build();
     }
 }

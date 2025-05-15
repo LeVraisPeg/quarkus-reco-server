@@ -16,6 +16,7 @@
     import java.io.FileReader;
     import java.util.concurrent.ExecutorService;
     import java.util.concurrent.Executors;
+    import java.util.logging.Logger;
     import java.util.regex.Matcher;
     import java.util.regex.Pattern;
     import java.util.stream.Collectors;
@@ -33,6 +34,8 @@
         EntityManager em;
         @Inject
         EntityManagerFactory entityManagerFactory;
+
+        private static final Logger logger = Logger.getLogger(CsvImporterService.class.getName());
 
 
         public void importRatingsFromCsv(String filePath) throws IOException, CsvValidationException {
@@ -53,7 +56,10 @@
                         float ratingValue = Float.parseFloat(tokens[2]);
 
                         Account account = accountCache.computeIfAbsent(userId, id -> accountService.findOrCreateById(id));
-                        if (account == null) continue;
+                        if (account == null) {
+                            logger.info("Account not found for userId: " + userId);
+                            continue;
+                        };
                         Movie movie = movieCache.get(movieId);
                         if (movie == null) continue;
 

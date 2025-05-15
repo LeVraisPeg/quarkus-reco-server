@@ -13,7 +13,9 @@ public class AdminRepository {
     EntityManager entityManager;
 
     public List<Admin> findAll() {
-        return entityManager.createQuery("SELECT a FROM Admin a", Admin.class).getResultList();
+        return entityManager.createQuery("SELECT a FROM Admin a WHERE a.role = :role", Admin.class)
+                .setParameter("role", fr.univtln.pegliasco.tp.model.Account.Role.ADMIN)
+                .getResultList();
     }
 
 
