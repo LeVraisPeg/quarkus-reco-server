@@ -1,6 +1,7 @@
 package fr.univtln.pegliasco.tp.services;
 
 
+import fr.univtln.pegliasco.tp.model.Account;
 import fr.univtln.pegliasco.tp.model.Movie;
 import fr.univtln.pegliasco.tp.model.Tag;
 import fr.univtln.pegliasco.tp.model.User;
@@ -8,6 +9,7 @@ import fr.univtln.pegliasco.tp.repository.TagRepository;
 import jakarta.transaction.Transactional;
 import jakarta.enterprise.context.ApplicationScoped;
 import java.util.List;
+import java.util.Optional;
 
 
 @ApplicationScoped
@@ -86,5 +88,10 @@ public class TagService {
     }
 
 
+    //findByNameAndAccount
+    @Transactional
+    public Optional<Tag> findByNameAndAccount(String name, Account account) {
+        return tagRepository.findByNameAndAccount(name, account);
+    }
 
 }

@@ -47,4 +47,14 @@ public class TagRepository {
     }
 
 
+
+    public Optional<Tag> findByNameAndAccount(String name, Account account) {
+        return entityManager.createQuery("SELECT t FROM Tag t WHERE t.name = :name AND t.account = :account", Tag.class)
+                .setParameter("name", name)
+                .setParameter("account", account)
+                .getResultList()
+                .stream()
+                .findFirst();
+    }
+
 }

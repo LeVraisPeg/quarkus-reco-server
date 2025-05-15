@@ -36,6 +36,8 @@
         EntityManagerFactory entityManagerFactory;
 
         private static final Logger logger = Logger.getLogger(CsvImporterService.class.getName());
+        @Inject
+        TagService tagService;
 
 
         public void importRatingsFromCsv(String filePath) throws IOException, CsvValidationException {
@@ -215,131 +217,112 @@
         }
 
 
-
-
-
         public void importTagsFromCsv(String filePath) throws IOException, CsvValidationException {
             final int batchSize = 5000;
-            Map<String, Tag> tagMap = new HashMap<>();
+            List<Tag> currentBatch = new ArrayList<>(batchSize);
 
-            // Préchargement des comptes et films existants
+            // Mise en cache des comptes et films
             Map<Long, Account> accountCache = accountService.findAllAsMap();
             Map<Long, Movie> movieCache = movieService.findAllAsMap();
-            logger.info("movie cache size: " + movieCache.size());
+
+            // Map pour éviter les doublons de tags : "tagName::userId"
+            Map<String, Tag> tagMap = new HashMap<>();
 
             try (CSVReader csvReader = new CSVReader(new FileReader(filePath))) {
                 String[] tokens;
-                csvReader.readNext(); // Skip header
+                csvReader.readNext(); // skip header
 
                 while ((tokens = csvReader.readNext()) != null) {
-                    if (tokens.length >= 4) {
+                    if (tokens.length >= 3) {
                         Long userId = Long.parseLong(tokens[0]);
                         Long movieId = Long.parseLong(tokens[1]);
-                        String tagName = tokens[2].trim();
+                        String tagName = tokens[2].trim().toLowerCase();
+
+                        Account account = accountCache.get(userId);
+                        if (account == null) continue;
 
                         Movie movie = movieCache.get(movieId);
-                        if (movie == null) {
-                            logger.info("Movie not found for movieId: " + movieId);
-                            continue;
-                        }
+                        if (movie == null) continue;
 
-                        Account account = accountCache.computeIfAbsent(userId, id -> accountService.findOrCreateById(id));
-                        String key = tagName + "::" + userId;
-
-
-                        Tag tag = tagMap.computeIfAbsent(key, k -> {
+                        String tagKey = tagName + "::" + userId;
+                        Tag tag = tagMap.computeIfAbsent(tagKey, k -> {
                             Tag t = new Tag();
-                            t.setName(tagName.toLowerCase());
+                            t.setName(tagName);
                             t.setAccount(account);
-                            t.setMovies(new ArrayList<>());
                             return t;
                         });
 
-                        boolean movieAlreadyLinked = tag.getMovies().stream()
-                                .anyMatch(m -> Objects.equals(m.getId(), movie.getId()));
-
-                        if (!movieAlreadyLinked) {
+                        if (tag.getMovies() == null) tag.setMovies(new ArrayList<>());
+                        if (!tag.getMovies().contains(movie)) {
                             tag.getMovies().add(movie);
                         }
 
-
-
+                        if (movie.getTags() == null) movie.setTags(new ArrayList<>());
+                        if (!movie.getTags().contains(tag)) {
+                            movie.getTags().add(tag);
+                        }
                     }
                 }
+
+                currentBatch.addAll(tagMap.values());
+                persistBatchTag(currentBatch);
+                System.out.println("Import terminé depuis : " + filePath);
             }
-
-            // Partitionner les tags en batchs
-            List<Tag> allTags = new ArrayList<>(tagMap.values());
-            List<List<Tag>> batches = new ArrayList<>();
-            for (int i = 0; i < allTags.size(); i += batchSize) {
-                batches.add(allTags.subList(i, Math.min(i + batchSize, allTags.size())));
-            }
-
-            // Exécution parallèle
-            ExecutorService executor = Executors.newFixedThreadPool(4);
-            List<CompletableFuture<Void>> futures = batches.stream()
-                    .map(batch -> CompletableFuture.runAsync(() -> persistBatchTagWithTransaction(batch), executor))
-                    .toList();
-            CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
-            executor.shutdown();
-
-            System.out.println("Imported tags from: " + filePath);
         }
 
 
-        private void persistBatchTagWithTransaction(List<Tag> tags) {
-            EntityManager entityManager = em.getEntityManagerFactory().createEntityManager();
-            EntityTransaction transaction = entityManager.getTransaction();
+
+        private void persistBatchTag(List<Tag> tags) {
+            EntityManager em = entityManagerFactory.createEntityManager();
+            EntityTransaction tx = em.getTransaction();
 
             try {
-                transaction.begin();
+                tx.begin();
 
                 for (int i = 0; i < tags.size(); i++) {
                     Tag tag = tags.get(i);
 
-                    // Merge pour attacher les entités
-                    Account managedAccount = entityManager.merge(tag.getAccount());
+                    // Rendre les objets gérés
+                    Account managedAccount = em.merge(tag.getAccount());
                     List<Movie> managedMovies = tag.getMovies().stream()
-                            .map(movie -> entityManager.merge(movie))
-                            .distinct() // éviter les doublons
+                            .map(em::merge)
                             .toList();
 
                     tag.setAccount(managedAccount);
                     tag.setMovies(managedMovies);
 
-                    //logger.info("Persisting tag: " + tag.getName() + " with movies: " +
-                            //tag.getMovies().stream().map(Movie::getTitle).collect(Collectors.joining(", ")));;
+                    Tag managedTag = em.merge(tag); // merge obligatoire
 
-                    entityManager.persist(tag);
-
-                    for (Movie movie : managedMovies) {
-                        List<Tag> movieTags = movie.getTags();
-                        if (movieTags == null) {
-                            movieTags = new ArrayList<>();
-                            movie.setTags(movieTags);
+                    // Mise à jour des films pour refléter la relation
+                    for (Movie m : managedMovies) {
+                        if (m.getTags() == null) {
+                            m.setTags(new ArrayList<>());
                         }
-                        if (!movieTags.contains(tag)) {
-                            movieTags.add(tag);
-                            entityManager.merge(movie); // Met à jour le film avec le nouveau tag
+                        if (!m.getTags().contains(managedTag)) {
+                            m.getTags().add(managedTag);
+                            em.merge(m);
                         }
                     }
 
                     if (i % 1000 == 0) {
-                        entityManager.flush();
-                        entityManager.clear();
+                        em.flush();
+                        em.clear();
                     }
                 }
 
-                entityManager.flush();
-                transaction.commit();
+                em.flush();
+                em.clear();
+                tx.commit();
 
             } catch (Exception e) {
-                if (transaction.isActive()) transaction.rollback();
+                if (tx.isActive()) tx.rollback();
                 e.printStackTrace();
             } finally {
-                entityManager.close();
+                em.close();
             }
         }
+
+
 
 
 

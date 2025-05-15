@@ -18,7 +18,10 @@ public class Tag {
     @Column
     private String name;
 
-    @ManyToMany(mappedBy = "tags", fetch = FetchType.EAGER)
+    @ManyToMany( fetch = FetchType.EAGER)
+    @JoinTable(name = "tag_movie",
+            joinColumns = @JoinColumn(name = "tag_id"),
+            inverseJoinColumns = @JoinColumn(name = "movie_id"))
     private List<Movie> movies;
 
     @ManyToOne

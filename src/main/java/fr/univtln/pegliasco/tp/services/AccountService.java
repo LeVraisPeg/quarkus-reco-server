@@ -94,4 +94,11 @@ public class AccountService {
     public Map<Long, Account> findAllAsMap() {
         return accountRepository.findAllAsMap();
     }
+
+    //find by id
+    public Account findById(Long id) {
+        return accountRepository.findById(id);
+    }
+
+
 }

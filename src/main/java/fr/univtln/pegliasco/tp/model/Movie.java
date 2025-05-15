@@ -28,12 +28,7 @@ public class Movie {
     @JsonIgnore
     private List<Gender> genders;
 
-    @ManyToMany(fetch = FetchType.EAGER)
-    @JoinTable(
-            name = "movie_tag",
-            joinColumns = @JoinColumn(name = "movie_id"),
-            inverseJoinColumns = @JoinColumn(name = "tag_id")
-    )
+    @ManyToMany(mappedBy = "movies",fetch = FetchType.EAGER)
     @JsonIgnore
     private List<Tag> tags;
 }
