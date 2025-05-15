@@ -49,6 +49,7 @@
                 String[] tokens;
                 csvReader.readNext(); // skip header
 
+
                 while ((tokens = csvReader.readNext()) != null) {
                     if (tokens.length >= 4) {
                         Long userId = Long.parseLong(tokens[0]);
@@ -129,6 +130,7 @@
                 while ((tokens = csvReader.readNext()) != null) {
                     if (tokens.length >= 3) {
                         Movie movie = new Movie();
+                        movie.setId(Long.parseLong(tokens[0]));
                         String rawTitle = tokens[1].trim();
 
                         // Extraire l'année
@@ -215,13 +217,15 @@
 
 
 
+
         public void importTagsFromCsv(String filePath) throws IOException, CsvValidationException {
             final int batchSize = 5000;
-            List<Tag> allTags = new ArrayList<>();
+            Map<String, Tag> tagMap = new HashMap<>();
 
             // Préchargement des comptes et films existants
             Map<Long, Account> accountCache = accountService.findAllAsMap();
             Map<Long, Movie> movieCache = movieService.findAllAsMap();
+            logger.info("movie cache size: " + movieCache.size());
 
             try (CSVReader csvReader = new CSVReader(new FileReader(filePath))) {
                 String[] tokens;
@@ -233,25 +237,39 @@
                         Long movieId = Long.parseLong(tokens[1]);
                         String tagName = tokens[2].trim();
 
-                        // Récupérer le film
                         Movie movie = movieCache.get(movieId);
-                        if (movie == null) continue;
+                        if (movie == null) {
+                            logger.info("Movie not found for movieId: " + movieId);
+                            continue;
+                        }
 
-                        // Récupérer ou créer le compte
                         Account account = accountCache.computeIfAbsent(userId, id -> accountService.findOrCreateById(id));
+                        String key = tagName + "::" + userId;
 
-                        // Créer le tag
-                        Tag tag = new Tag();
-                        tag.setName(tagName);
-                        tag.setAccount(account);
-                        tag.setMovies(new ArrayList<>(List.of(movie))); // associer le film
 
-                        allTags.add(tag);
+                        Tag tag = tagMap.computeIfAbsent(key, k -> {
+                            Tag t = new Tag();
+                            t.setName(tagName.toLowerCase());
+                            t.setAccount(account);
+                            t.setMovies(new ArrayList<>());
+                            return t;
+                        });
+
+                        boolean movieAlreadyLinked = tag.getMovies().stream()
+                                .anyMatch(m -> Objects.equals(m.getId(), movie.getId()));
+
+                        if (!movieAlreadyLinked) {
+                            tag.getMovies().add(movie);
+                        }
+
+
+
                     }
                 }
             }
 
             // Partitionner les tags en batchs
+            List<Tag> allTags = new ArrayList<>(tagMap.values());
             List<List<Tag>> batches = new ArrayList<>();
             for (int i = 0; i < allTags.size(); i += batchSize) {
                 batches.add(allTags.subList(i, Math.min(i + batchSize, allTags.size())));
@@ -289,7 +307,22 @@
                     tag.setAccount(managedAccount);
                     tag.setMovies(managedMovies);
 
+                    //logger.info("Persisting tag: " + tag.getName() + " with movies: " +
+                            //tag.getMovies().stream().map(Movie::getTitle).collect(Collectors.joining(", ")));;
+
                     entityManager.persist(tag);
+
+                    for (Movie movie : managedMovies) {
+                        List<Tag> movieTags = movie.getTags();
+                        if (movieTags == null) {
+                            movieTags = new ArrayList<>();
+                            movie.setTags(movieTags);
+                        }
+                        if (!movieTags.contains(tag)) {
+                            movieTags.add(tag);
+                            entityManager.merge(movie); // Met à jour le film avec le nouveau tag
+                        }
+                    }
 
                     if (i % 1000 == 0) {
                         entityManager.flush();

@@ -1,6 +1,8 @@
 package fr.univtln.pegliasco.tp.controller;
 
 import fr.univtln.pegliasco.encryption.differential_privacy.MakeNoise;
+import fr.univtln.pegliasco.tp.model.Account;
+import fr.univtln.pegliasco.tp.model.Movie;
 import fr.univtln.pegliasco.tp.model.Rating;
 import fr.univtln.pegliasco.tp.model.view.RatingId;
 import fr.univtln.pegliasco.tp.services.RatingService;
@@ -68,12 +70,14 @@ public class RatingController {
 
     // Mettre à jour une évaluation par son ID
     @PUT
-    @Path("/{id}")
-    public Response updateRating(@PathParam("id") Long id, Rating rating) {
-        ratingService.updateRating(id, rating);
+    @Path("/{id}/{value}")
+    public Response updateRating(@PathParam("id") Long id,
+            @PathParam("value") Float rate, Rating rating) {
+        rating.setId(id);
+        rating.setRate(rate);
+        ratingService.updateRating(id,rating);
         return Response.ok(rating).build();
     }
-
     // Récupérer une évaluation par son ID
     @GET
     @Path("/{id}")

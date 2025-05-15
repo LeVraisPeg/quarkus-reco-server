@@ -1,5 +1,6 @@
 package fr.univtln.pegliasco.tp.controller;
 
+import fr.univtln.pegliasco.tp.model.Movie;
 import fr.univtln.pegliasco.tp.model.Tag;
 import fr.univtln.pegliasco.tp.services.TagService;
 
@@ -55,4 +56,15 @@ public class TagController {
         }
     }
 
+    // Récupérer les films par tag
+    @GET
+    @Path("/movies/{id}")
+    public Response getMoviesByTag(@PathParam("id") Long id) {
+        List<Movie> tags = tagService.getMoviesByTag(id);
+        if (tags != null) {
+            return Response.ok(tags).build();
+        } else {
+            return Response.status(Response.Status.NOT_FOUND).build();
+        }
+    }
 }

@@ -80,16 +80,16 @@ public class AccountController {
         return Response.ok(account).build();
     }
 
-    // Authentification (nom d'utilisateur et mot de passe)
+    // Authentification (nom d'utilisateur et mot de passe) renvoie l'id de l'utilisateur
     @POST
     @Path("/login")
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
-    public Response authenticateAccount(@FormParam("nom") String nom, @FormParam("password") String password) {
-        Account account = accountService.authenticate(nom, password);
+    public Response login(@FormParam("username") String username, @FormParam("password") String password) {
+        Account account = accountService.authenticate(username, password);
         if (account == null) {
             return Response.status(Response.Status.UNAUTHORIZED).build();
         }
-        return Response.ok(account).build();
+        return Response.ok(account.getId()).build();
     }
 
     // Récupérer un compte par son rôle

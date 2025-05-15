@@ -1,6 +1,7 @@
 package fr.univtln.pegliasco.tp.controller;
 
 import fr.univtln.pegliasco.tp.model.Rating;
+import fr.univtln.pegliasco.tp.model.Tag;
 import fr.univtln.pegliasco.tp.services.MovieService;
 import fr.univtln.pegliasco.encryption.differential_privacy.MakeNoise;
 import fr.univtln.pegliasco.tp.model.Movie;
@@ -10,6 +11,7 @@ import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import java.util.List;
+import java.util.logging.Logger;
 
 @Path("/movie")
 @Produces(MediaType.APPLICATION_JSON)
@@ -17,6 +19,8 @@ import java.util.List;
 public class MovieController {
     @Inject
     MovieService movieService;
+
+    Logger logger = Logger.getLogger(MovieController.class.getName());
 
     // Récupérer tous les films
     @GET
@@ -41,8 +45,10 @@ public class MovieController {
 
     // Mettre à jour un film par son ID
     @PUT
-    @Path("/{id}")
-    public Response updateMovie(@PathParam("id") Long id, Movie movie) {
+    @Path("/{id}/{title}/{year}")
+    public Response updateMovie(@PathParam("id") Long id,@PathParam("title") String title,@PathParam("year") Integer year, Movie movie) {
+        movie.setTitle(title);
+        movie.setYear(year);
         movieService.updateMovie(id, movie);
         return Response.ok(movie).build();
     }
@@ -127,4 +133,12 @@ public class MovieController {
         }
     }
 
+    //Récupérer les tags d'un film par son ID
+    @GET
+    @Path("/tags/{movieId}")
+    public Response getTagsByMovieId(@PathParam("movieId") Long movieId) {
+        List<Tag> tags = movieService.getTagsByMovieId(movieId);
+        logger.info("Tags trouvés : " + tags); // Pour debug
+        return Response.ok(tags != null ? tags : List.of()).build();
+    }
 }

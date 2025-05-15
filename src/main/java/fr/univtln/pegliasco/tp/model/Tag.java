@@ -18,8 +18,7 @@ public class Tag {
     @Column
     private String name;
 
-    @ManyToMany(mappedBy = "tags")
-    @JsonIgnore
+    @ManyToMany(mappedBy = "tags", fetch = FetchType.EAGER)
     private List<Movie> movies;
 
     @ManyToOne

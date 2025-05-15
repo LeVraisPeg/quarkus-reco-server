@@ -1,6 +1,7 @@
 package fr.univtln.pegliasco.tp.repository;
 
 
+import fr.univtln.pegliasco.tp.model.Account;
 import fr.univtln.pegliasco.tp.model.Tag;
 
 import jakarta.enterprise.context.ApplicationScoped;
@@ -8,6 +9,9 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 
 import java.util.List;
+import java.util.Optional;
+
+import static io.quarkus.hibernate.orm.panache.PanacheEntityBase.find;
 
 @ApplicationScoped
 public class TagRepository {

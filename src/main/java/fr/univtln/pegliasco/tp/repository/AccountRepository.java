@@ -48,6 +48,11 @@ public class AccountRepository {
     }
     // Ajouter un compte
     public void persist(Account account) {
+        // Générer un salt et hacher le mot de passe
+        String salt = generateSalt();
+        String hashedPassword = hashPassword(account.getPassword(), salt);
+        account.setPassword(hashedPassword + ":" + salt);
+        // Enregistrer le compte dans la base de données
         em.persist(account);
     }
     // Mettre à jour un compte

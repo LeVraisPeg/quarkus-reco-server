@@ -1,6 +1,7 @@
 package fr.univtln.pegliasco.tp.services;
 
 
+import fr.univtln.pegliasco.tp.model.Movie;
 import fr.univtln.pegliasco.tp.model.Tag;
 import fr.univtln.pegliasco.tp.model.User;
 import fr.univtln.pegliasco.tp.repository.TagRepository;
@@ -70,6 +71,17 @@ public class TagService {
                 existingTag.setMovies(tag.getMovies());
                 tagRepository.update(existingTag);
             }
+        }
+    }
+
+    // Récupérer les films par tag
+    @Transactional
+    public List<Movie> getMoviesByTag(Long id) {
+        Tag tag = tagRepository.findById(id);
+        if (tag != null) {
+            return tag.getMovies();
+        } else {
+            return null;
         }
     }
 

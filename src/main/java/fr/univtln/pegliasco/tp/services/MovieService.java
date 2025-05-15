@@ -2,6 +2,7 @@ package fr.univtln.pegliasco.tp.services;
 
 import fr.univtln.pegliasco.tp.model.Movie;
 import fr.univtln.pegliasco.tp.model.Rating;
+import fr.univtln.pegliasco.tp.model.Tag;
 import fr.univtln.pegliasco.tp.repository.MovieRepository;
 import jakarta.transaction.Transactional;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -144,5 +145,15 @@ public class MovieService {
     }
 
 
+    //Récupérer les tags d'un film par son ID
+    @Transactional
+    public List<Tag> getTagsByMovieId(Long movieId) {
+        Movie movie = movieRepository.findById(movieId);
+        if (movie != null) {
+            return movie.getTags();
+        } else {
+            return null;
+        }
+    }
 
 }

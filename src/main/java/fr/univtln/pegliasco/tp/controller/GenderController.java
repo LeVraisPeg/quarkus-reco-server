@@ -39,11 +39,13 @@ public class GenderController {
     }
     // Mettre à jour un genre par son ID
     @PUT
-    @Path("/{id}")
-    public Response updateGender(@PathParam("id")Long id,Gender gender){
+    @Path("/{id}/{name}")
+    public Response updateGender(@PathParam("id")Long id,@PathParam("name")String name,Gender gender){
+        gender.setName(name);
         genderService.updateGender(id,gender);
         return Response.ok(gender).build();
     }
+
     // Récupérer un genre par son ID
     @GET
     @Path("/{id}")

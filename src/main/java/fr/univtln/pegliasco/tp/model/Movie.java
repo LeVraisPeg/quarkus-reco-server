@@ -12,7 +12,6 @@ import java.util.List;
 @Entity
 public class Movie {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @Column
@@ -29,7 +28,12 @@ public class Movie {
     @JsonIgnore
     private List<Gender> genders;
 
-    @ManyToMany
+    @ManyToMany(fetch = FetchType.EAGER)
+    @JoinTable(
+            name = "movie_tag",
+            joinColumns = @JoinColumn(name = "movie_id"),
+            inverseJoinColumns = @JoinColumn(name = "tag_id")
+    )
     @JsonIgnore
     private List<Tag> tags;
 }
