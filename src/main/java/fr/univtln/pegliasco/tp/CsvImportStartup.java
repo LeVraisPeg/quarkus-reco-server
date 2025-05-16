@@ -25,7 +25,7 @@ public class CsvImportStartup {
             logger.info("▶ Import CSV on startup...");
 
             // Example file paths in /resources
-            String moviePath = getResourceFilePath("Data/movies.csv");
+            String moviePath = getResourceFilePath("Data/movies_created.csv");
             String ratingPath = getResourceFilePath("Data/ratings.csv");
             String tagPath = getResourceFilePath("Data/tags.csv");
 

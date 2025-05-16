@@ -1,5 +1,7 @@
     package fr.univtln.pegliasco.tp.services;
 
+    import com.opencsv.CSVParserBuilder;
+    import com.opencsv.CSVReaderBuilder;
     import com.opencsv.exceptions.CsvValidationException;
     import fr.univtln.pegliasco.tp.model.*;
     import jakarta.enterprise.context.ApplicationScoped;
@@ -9,20 +11,23 @@
     import jakarta.persistence.EntityTransaction;
 
     import java.io.IOException;
+    import java.text.ParseException;
+    import java.text.SimpleDateFormat;
     import java.util.*;
     import java.util.concurrent.CompletableFuture;
 
+    import org.jboss.logging.Logger;
     import com.opencsv.CSVReader;
     import java.io.FileReader;
     import java.util.concurrent.ExecutorService;
     import java.util.concurrent.Executors;
-    import java.util.logging.Logger;
     import java.util.regex.Matcher;
     import java.util.regex.Pattern;
     import java.util.stream.Collectors;
 
     @ApplicationScoped
     public class CsvImporterService {
+
 
         @Inject
         MovieService movieService;
@@ -119,102 +124,147 @@
             }
         }
 
+        private Date parseDateSafely(String dateStr) {
+            if (dateStr == null || dateStr.trim().equalsIgnoreCase("Unknown")) {
+                return null;
+            }
+
+            List<String> formats = List.of(
+                    "dd MMM yyyy",      // Ex: 22 Nov 1995
+                    "yyyy-MM-dd",       // Ex: 1995-12-29
+                    "yyyy/MM/dd"        // Ajoute ici d'autres formats si besoin
+            );
+
+            for (String format : formats) {
+                try {
+                    SimpleDateFormat sdf = new SimpleDateFormat(format, Locale.ENGLISH);
+                    sdf.setLenient(false);
+                    return sdf.parse(dateStr);
+                } catch (ParseException ignored) {
+                }
+            }
+
+            // Log si aucun format ne correspond
+            //System.out.println("Erreur de parsing de la date : " + dateStr);
+            return null;
+        }
+
+
+
         public void importMoviesFromCsv(String filePath) throws IOException, CsvValidationException {
             final int batchSize = 5000;
             List<Movie> allMovies = new ArrayList<>();
             Map<String, Gender> genreCache = new HashMap<>();
 
-            // Lecture du CSV et préparation des données
-            try (CSVReader csvReader = new CSVReader(new FileReader(filePath))) {
+            try (CSVReader csvReader = new CSVReaderBuilder(new FileReader(filePath))
+                    .withCSVParser(new CSVParserBuilder()
+                            .withSeparator(',')
+                            .withQuoteChar('"')
+                            .build())
+                    .build()) {
+
                 String[] tokens;
                 csvReader.readNext(); // Skip header
 
                 while ((tokens = csvReader.readNext()) != null) {
-                    if (tokens.length >= 3) {
+                    if (tokens.length < 11) {
+                        //logger.warnf("Ligne ignorée (colonnes insuffisantes) : %s", Arrays.toString(tokens));
+                        continue;
+                    }
+
+                    try {
                         Movie movie = new Movie();
-                        movie.setId(Long.parseLong(tokens[0]));
-                        String rawTitle = tokens[1].trim();
+                        movie.setId(Long.parseLong(tokens[0].trim()));
+                        movie.setTitle(tokens[1].trim());
+                        movie.setYear(parseDateSafely(tokens[2].trim()));
+                        if (movie.getYear() == null) continue;
 
-                        // Extraire l'année
-                        Pattern pattern = Pattern.compile("\\((\\d{4})\\)");
-                        Matcher matcher = pattern.matcher(rawTitle);
-                        if (matcher.find()) {
-                            int year = Integer.parseInt(matcher.group(1));
-                            movie.setYear(year);
-                        } else {
-                            movie.setYear(0); // ou -1
-                        }
+                        movie.setRuntime(Integer.parseInt(tokens[3].trim()));
 
-                        String cleanTitle = rawTitle.replaceAll("\\s*\\(\\d{4}\\)", "").trim();
-
-                        // Corriger les titres du type "Title, The" → "The Title"
-                        Pattern articlePattern = Pattern.compile("^(.*),\\s*(The|A|An)$", Pattern.CASE_INSENSITIVE);
-                        Matcher articleMatcher = articlePattern.matcher(cleanTitle);
-                        if (articleMatcher.find()) {
-                            cleanTitle = articleMatcher.group(2) + " " + articleMatcher.group(1);
-                        }
-
-                        movie.setTitle(cleanTitle);
-
-
-                        String[] genreNames = tokens[2].split("\\|");
+                        String[] genreNames = tokens[4].split("\\|");
                         List<Gender> genderList = new ArrayList<>();
                         for (String genreName : genreNames) {
                             genreName = genreName.trim();
                             Gender gender = genreCache.computeIfAbsent(genreName, name -> genderService.findOrCreateByName(name));
                             genderList.add(gender);
                         }
-
                         movie.setGenders(genderList);
+
+                        movie.setDirector(tokens[5].trim());
+
+                        movie.setWriters(Arrays.stream(tokens[6].split("\\|"))
+                                .map(String::trim).filter(s -> !s.isEmpty()).collect(Collectors.toList()));
+                        movie.setActors(Arrays.stream(tokens[7].split("\\|"))
+                                .map(String::trim).filter(s -> !s.isEmpty()).collect(Collectors.toList()));
+                        movie.setPlot(tokens[8].trim());
+                        movie.setCountry(tokens[9].trim());
+                        movie.setPoster(tokens[10].trim());
+
                         allMovies.add(movie);
+
+                    } catch (Exception e) {
+                        logger.errorf(e, "Erreur lors du parsing de la ligne : %s", Arrays.toString(tokens));
                     }
                 }
             }
 
-            // Diviser les films en lots pour le parallélisme
+            //logger.infof("Nombre total de films lus : %d", allMovies.size());
+
+            // Diviser en batches
             List<List<Movie>> batches = new ArrayList<>();
             for (int i = 0; i < allMovies.size(); i += batchSize) {
                 batches.add(allMovies.subList(i, Math.min(i + batchSize, allMovies.size())));
             }
 
-            // Exécution parallèle des batches avec gestion explicite des transactions
+            //logger.infof("Nombre total de batches à persister : %d", batches.size());
+
+            // Persistance parallèle
             List<CompletableFuture<Void>> futures = batches.stream()
                     .map(batch -> CompletableFuture.runAsync(() -> persistBatchWithTransaction(batch)))
                     .collect(Collectors.toList());
 
-            // Attendre que tous les futures soient terminés
+            // Attendre la fin
             CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
 
-            System.out.println("Imported movies from: " + filePath);
+            logger.infof("Importation terminée depuis le fichier : %s", filePath);
         }
+
+
 
 
 
         private void persistBatchWithTransaction(List<Movie> movies) {
-            // Créer un nouveau EntityManager pour chaque thread
             EntityManager entityManager = em.getEntityManagerFactory().createEntityManager();
-
-            // Démarrer la transaction manuellement dans chaque thread
             entityManager.getTransaction().begin();
 
             try {
                 for (int i = 0; i < movies.size(); i++) {
-                    entityManager.persist(movies.get(i));
-                    if (i % 1000 == 0) {  // Flush tous les 1000 éléments
+                    Movie movie = movies.get(i);
+                    //logger.infof("Persisting movie #%d: ID=%d, Title='%s', Director='%s', Country='%s'",
+                      //      i, movie.getId(), movie.getTitle(), movie.getDirector(), movie.getCountry());
+                    try {
+                        entityManager.persist(movie);
+                    } catch (Exception e) {
+                        logger.errorf(e, "Erreur lors de la persistance du film : %s (ID=%d)", movie.getTitle(), movie.getId());
+                    }
+                    if (i % 1000 == 0) {
                         entityManager.flush();
                     }
                 }
-                entityManager.flush();  // Flush final
-                entityManager.getTransaction().commit();  // Commit la transaction
+                entityManager.flush();
+                entityManager.getTransaction().commit();
 
             } catch (Exception e) {
-                // En cas d'erreur, annuler la transaction
-                entityManager.getTransaction().rollback();
-                e.printStackTrace();
+                if (entityManager.getTransaction().isActive()) {
+                    entityManager.getTransaction().rollback();
+                }
+                logger.error("Erreur lors de la persistance batch", e);
+
             } finally {
-                entityManager.close();  // Fermer l'EntityManager
+                entityManager.close();
             }
         }
+
 
 
         public void importTagsFromCsv(String filePath) throws IOException, CsvValidationException {

@@ -13,7 +13,9 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 
 import java.io.File;
+import java.text.SimpleDateFormat;
 import java.util.List;
+import java.util.Locale;
 import java.util.logging.Logger;
 
 @Path("/movie")
@@ -48,10 +50,23 @@ public class MovieController {
 
     // Mettre à jour un film par son ID
     @PUT
-    @Path("/{id}/{title}/{year}")
-    public Response updateMovie(@PathParam("id") Long id,@PathParam("title") String title,@PathParam("year") Integer year, Movie movie) {
+    @Path("/{id}/{title}/{year}/{director}/{runtime}/{plot}/{country}/{poster}")
+    public Response updateMovie(@PathParam("id") Long id,@PathParam("title") String title,@PathParam("year") Integer year, @PathParam("director") String director,
+                                @PathParam("runtime") Integer runtime,@PathParam("plot") String plot,@PathParam("country") String country,
+                                @PathParam("poster") String poster, Movie movie) {
         movie.setTitle(title);
-        movie.setYear(year);
+        SimpleDateFormat dateFormat = new SimpleDateFormat("dd MMM yyyy", Locale.ENGLISH);
+        try{
+            movie.setYear((dateFormat.parse(year.toString())));
+        }catch (Exception e){
+            return Response.status(Response.Status.BAD_REQUEST).entity("Invalid date format").build();
+        }
+        movie.setDirector(director);
+        movie.setRuntime(runtime);
+        movie.setPlot(plot);
+        movie.setCountry(country);
+        movie.setPoster(poster);
+
         movieService.updateMovie(id, movie);
         return Response.ok(movie).build();
     }
