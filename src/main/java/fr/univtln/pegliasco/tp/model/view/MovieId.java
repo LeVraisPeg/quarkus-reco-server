@@ -1,4 +1,5 @@
 package fr.univtln.pegliasco.tp.model.view;
 
-public class MovieId {
-}
+public record MovieId(Long id, String title, int year) {
+    }
+

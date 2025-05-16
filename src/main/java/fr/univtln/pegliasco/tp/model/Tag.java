@@ -22,6 +22,7 @@ public class Tag {
     @JoinTable(name = "tag_movie",
             joinColumns = @JoinColumn(name = "tag_id"),
             inverseJoinColumns = @JoinColumn(name = "movie_id"))
+    @JsonIgnore
     private List<Movie> movies;
 
     @ManyToOne

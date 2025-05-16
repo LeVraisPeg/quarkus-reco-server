@@ -2,6 +2,7 @@ package fr.univtln.pegliasco.tp.controller;
 
 import fr.univtln.pegliasco.tp.model.Rating;
 import fr.univtln.pegliasco.tp.model.Tag;
+import fr.univtln.pegliasco.tp.model.view.MovieId;
 import fr.univtln.pegliasco.tp.services.MovieService;
 import fr.univtln.pegliasco.encryption.differential_privacy.MakeNoise;
 import fr.univtln.pegliasco.tp.model.Movie;
@@ -10,6 +11,8 @@ import jakarta.inject.Inject;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+
+import java.io.File;
 import java.util.List;
 import java.util.logging.Logger;
 
@@ -140,5 +143,22 @@ public class MovieController {
         List<Tag> tags = movieService.getTagsByMovieId(movieId);
         logger.info("Tags trouvés : " + tags); // Pour debug
         return Response.ok(tags != null ? tags : List.of()).build();
+    }
+
+
+    //getAllMoviesAsCSV
+    @GET
+    @Path("/csv")
+    @Produces("text/csv")
+    public Response getAllMoviesAsCSV() {
+        List<MovieId> pagedMovies = movieService.getAllMoviesId();
+        try {
+            File csv = MovieService.generateCSV(pagedMovies);
+            return Response.ok(csv)
+                    .header("Content-Disposition", "attachment; filename=\"movies.csv\"")
+                    .build();
+        }catch (Exception e) {
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("Error generating CSV").build();
+        }
     }
 }

@@ -3,6 +3,8 @@ package fr.univtln.pegliasco.tp.repository;
 import fr.univtln.pegliasco.tp.model.Gender;
 import fr.univtln.pegliasco.tp.model.Movie;
 
+import fr.univtln.pegliasco.tp.model.view.MovieId;
+import fr.univtln.pegliasco.tp.model.view.RatingId;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
@@ -32,6 +34,12 @@ public class MovieRepository {
                 .getResultList();
     }
 
+    //findAllId
+    public List<MovieId> findAllId() {
+        return entityManager.createQuery(
+                "SELECT new MovieId (m.id, m.title,m.year) FROM Movie m",
+                MovieId.class).getResultList();
+    }
 
     public void save(Movie movie) {
         if (movie.getId() == null) {

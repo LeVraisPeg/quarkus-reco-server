@@ -3,9 +3,15 @@ package fr.univtln.pegliasco.tp.services;
 import fr.univtln.pegliasco.tp.model.Movie;
 import fr.univtln.pegliasco.tp.model.Rating;
 import fr.univtln.pegliasco.tp.model.Tag;
+import fr.univtln.pegliasco.tp.model.view.MovieId;
+import fr.univtln.pegliasco.tp.model.view.RatingId;
 import fr.univtln.pegliasco.tp.repository.MovieRepository;
 import jakarta.transaction.Transactional;
 import jakarta.enterprise.context.ApplicationScoped;
+
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
@@ -15,6 +21,25 @@ public class MovieService {
 
     public MovieService(MovieRepository movieRepository) {
         this.movieRepository = movieRepository;
+    }
+
+    //getAllMoviesId
+    public List<MovieId> getAllMoviesId() {
+        return movieRepository.findAllId();
+    }
+
+    //generateCSV
+    public static File generateCSV(List<MovieId> movies) throws IOException {
+        File tempFile = File.createTempFile("movies-", ".csv");
+        try (FileWriter writer = new FileWriter(tempFile)) {
+            writer.append("id,title,year\n");
+            for (MovieId p : movies) {
+                writer.append(String.valueOf(p.id())).append(",")
+                        .append(String.valueOf(p.title())).append(",")
+                        .append(String.valueOf(p.year())).append("\n");
+            }
+        }
+        return tempFile;
     }
 
 
