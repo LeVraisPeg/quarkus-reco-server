@@ -2,8 +2,6 @@ package fr.univtln.pegliasco.tp.repository;
 
 import fr.univtln.pegliasco.tp.model.Account;
 
-
-
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.NoResultException;
@@ -18,7 +16,6 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import java.util.logging.Logger;
-
 
 @ApplicationScoped
 public class AccountRepository {
@@ -36,6 +33,7 @@ public class AccountRepository {
     public Account findById(Long id) {
         return em.find(Account.class, id);
     }
+
     // Récupérer un compte par son nom d'utilisateur
     public Account findByNom(String nom) {
         try {
@@ -46,6 +44,7 @@ public class AccountRepository {
             return null;
         }
     }
+
     // Ajouter un compte
     public void persist(Account account) {
         // Générer un salt et hacher le mot de passe
@@ -55,6 +54,7 @@ public class AccountRepository {
         // Enregistrer le compte dans la base de données
         em.persist(account);
     }
+
     // Mettre à jour un compte
     public Account update(Account account) {
         String salt = generateSalt();
@@ -68,6 +68,7 @@ public class AccountRepository {
         }
         return account;
     }
+
     // Supprimer un compte
     public void delete(Account account) {
         em.remove(em.contains(account) ? account : em.merge(account));
@@ -87,10 +88,11 @@ public class AccountRepository {
     }
 
     private boolean checkPassword(String password, String storedPassword) {
-        // Extraire le mot de passe haché et le salt à partir de la chaîne "hashedPassword:salt"
+        // Extraire le mot de passe haché et le salt à partir de la chaîne
+        // "hashedPassword:salt"
         String[] parts = storedPassword.split(":");
-        String hashedStoredPassword = parts[0];  // Le mot de passe haché stocké
-        String salt = parts[1];  // Le salt utilisé pour hacher le mot de passe
+        String hashedStoredPassword = parts[0]; // Le mot de passe haché stocké
+        String salt = parts[1]; // Le salt utilisé pour hacher le mot de passe
 
         // Hacher le mot de passe saisi avec le même salt
         String hashedPassword = hashPassword(password, salt);
@@ -103,9 +105,11 @@ public class AccountRepository {
     public Account findByNomAndPassword(String nom, String password) {
         try {
             // Récupérer l'enseignant par email
-            Account account = em.createQuery("SELECT a FROM Account a WHERE a.nom = :nom", Account.class)
-                    .setParameter("nom", nom)
-                    .getSingleResult();
+            // Account account = em.createQuery("SELECT a FROM Account a WHERE a.nom =
+            // :nom", Account.class)
+            // .setParameter("nom", nom)
+            // .getSingleResult();
+            Account account = findByNom(nom);
             // Si l'enseignant existe et que le mot de passe est correct
             if (account != null && checkPassword(password, account.getPassword())) {
                 return account;

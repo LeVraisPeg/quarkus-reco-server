@@ -13,9 +13,8 @@ public class RecommendedController {
     @Inject
     RecommendedService recommendedService;
 
-
     @GET
-    public List<Movie> getRecommendations(@QueryParam("id") Long id, @QueryParam("nb") int nb){
+    public List<Movie> getRecommendations(@QueryParam("id") Long id, @QueryParam("nb") int nb) {
         return recommendedService.fetchRecommendations(id, nb);
     }
 }

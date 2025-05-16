@@ -43,7 +43,9 @@ public class AccountController {
     // Mettre à jour un compte
     @PUT
     @Path("/{id}/{nom}/{prenom}/{email}/{password}/{Role}")
-    public Response updateAccount(@PathParam("id") Long id, @PathParam("nom")String nom, @PathParam("prenom")String prenom, @PathParam("email")String email, @PathParam("password")String password, Account account) {
+    public Response updateAccount(@PathParam("id") Long id, @PathParam("nom") String nom,
+            @PathParam("prenom") String prenom, @PathParam("email") String email,
+            @PathParam("password") String password, Account account) {
         Account existingAccount = accountService.getAccountById(id);
         if (existingAccount == null) {
             return Response.status(Response.Status.NOT_FOUND).build();
@@ -80,7 +82,8 @@ public class AccountController {
         return Response.ok(account).build();
     }
 
-    // Authentification (nom d'utilisateur et mot de passe) renvoie l'id de l'utilisateur
+    // Authentification (nom d'utilisateur et mot de passe) renvoie l'id de
+    // l'utilisateur
     @POST
     @Path("/login")
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
@@ -89,7 +92,7 @@ public class AccountController {
         if (account == null) {
             return Response.status(Response.Status.UNAUTHORIZED).build();
         }
-        return Response.ok(account.getId()).build();
+        return Response.ok(account).build();
     }
 
     // Récupérer un compte par son rôle
