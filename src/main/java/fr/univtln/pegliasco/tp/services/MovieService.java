@@ -72,7 +72,7 @@ public class MovieService {
     }
 
     public List<Movie> getMoviesByTitleContainsIgnoreCase(String title) {
-        return movieRepository.findByTitleContainsIgnoreCase(title);
+        return movieRepository.findByTitleSmart(title);
     }
 
     //getMoviesByIds
