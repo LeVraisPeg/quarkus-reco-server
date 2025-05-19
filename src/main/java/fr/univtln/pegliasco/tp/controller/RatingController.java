@@ -42,15 +42,16 @@ public class RatingController {
     @Produces("text/csv")
     public Response getAllRatingsAsCSV() {
         List<RatingId> pagedRatings = ratingService.getAllRatingsId();
+        // Application du bruit différentiel
+        List<RatingId> noisyRatings = MakeNoise.applyLapplaceNoiselist(pagedRatings);
         try {
-            File csv = RatingService.generateCSV(pagedRatings);
+            File csv = RatingService.generateCSV(noisyRatings);
             return Response.ok(csv)
                     .header("Content-Disposition", "attachment; filename=\"ratings.csv\"")
                     .build();
         } catch (IOException e) {
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("Error generating CSV").build();
         }
-
     }
 
     // Ajouter une évaluation

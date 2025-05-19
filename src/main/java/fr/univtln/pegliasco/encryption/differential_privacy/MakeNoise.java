@@ -6,6 +6,7 @@ import java.util.logging.Logger;
 import com.arjuna.ats.internal.jdbc.drivers.modifiers.list;
 
 import fr.univtln.pegliasco.tp.model.Rating;
+import fr.univtln.pegliasco.tp.model.view.RatingId;
 import lombok.NoArgsConstructor;
 
 import java.util.Random;
@@ -95,6 +96,15 @@ public class MakeNoise {
         double noise = generateLaplaceNoise(1, 0.5);
         rating.setRate((float) (rating.getRate() + noise));
         return rating;
+    }
+
+    public static List<RatingId> applyLapplaceNoiselist(List<RatingId> ratings) {
+        for (int i = 0; i < ratings.size(); i++) {
+            RatingId r = ratings.get(i);
+            double noise = generateLaplaceNoise(1, 0.5);
+            ratings.set(i, new RatingId(r.userId(), r.movieId(), r.rating() + (float) noise));
+        }
+        return ratings;
     }
 
     // Parameters for differential privacy

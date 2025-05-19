@@ -71,6 +71,32 @@ public class MovieRepository {
                 .getResultList();
     }
 
+    public List<Movie> findByTitleFuzzy(String title) {
+        return entityManager.createNativeQuery(
+                "SELECT * FROM movie m WHERE LOWER(m.title) % :query", Movie.class)
+                .setParameter("query", title.toLowerCase())
+                .getResultList();
+    }
+
+    public List<Movie> findByTitleSmart(String title) {
+        return entityManager.createNativeQuery(
+                "SELECT * FROM movie m " +
+                        "WHERE (to_tsvector('simple', lower(m.title)) @@ plainto_tsquery('simple', :query) " +
+                        "OR LOWER(m.title) % :query)",
+                Movie.class)
+                .setParameter("query", title.toLowerCase())
+                .getResultList();
+    }
+
+    // MovieRepository.java
+    public List<Movie> findByTitleFullText(String title) {
+        return entityManager.createNativeQuery(
+                "SELECT * FROM movie m WHERE to_tsvector('simple', lower(m.title)) @@ plainto_tsquery('simple', :query)",
+                Movie.class)
+                .setParameter("query", title.toLowerCase())
+                .getResultList();
+    }
+
     public void merge(Movie movie) {
         entityManager.merge(movie);
     }
