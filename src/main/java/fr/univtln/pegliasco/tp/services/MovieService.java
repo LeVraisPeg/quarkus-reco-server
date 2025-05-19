@@ -54,13 +54,13 @@ public class MovieService {
         return movies;
     }
 
-    @Transactional
+
     public Movie getMovieById(Long id) {
         return movieRepository.findById(id);
     }
 
     //getMoviesPaginated
-    @Transactional
+
     public List<Movie> getMoviesPaginated(int page, int size) {
         List<Movie> movies = movieRepository.findPaginated(page, size);
         movies.forEach(movie -> {
@@ -76,7 +76,7 @@ public class MovieService {
     }
 
     //getMoviesByIds
-    @Transactional
+
     public List<Movie> getMoviesByIds(List<Long> ids) {
         return movieRepository.findByIds(ids);
     }
@@ -107,7 +107,7 @@ public class MovieService {
     }
 
     //Récupérer les notes d'un film par son ID
-    @Transactional
+
     public List<Rating> getRatingsByMovieId(Long movieId) {
         Movie movie = movieRepository.findById(movieId);
         if (movie != null) {
@@ -118,7 +118,7 @@ public class MovieService {
     }
 
     // Récupérer la note moyenne d'un film par son ID
-    @Transactional
+
     public Double getAverageRatingByMovieId(Long movieId) {
         Movie movie = movieRepository.findById(movieId);
         if (movie != null && !movie.getRatings().isEmpty()) {
@@ -132,25 +132,24 @@ public class MovieService {
     }
 
     // Récupérer les films par genre
-    @Transactional
+
     public List<Movie> findByGender(String gender) {
         return movieRepository.findByGender(gender);
     }
 
     // Récupérer les films par tag
-    @Transactional
+
     public List<Movie> getMoviesByTag(String tag) {
         return movieRepository.findByTag(tag);
     }
 
     // Récupérer les films par titre
-    @Transactional
+
     public List<Movie> getMoviesByTitle(String title) {
         return movieRepository.findByTitle(title);
     }
 
     // Récupérer les films par année
-    @Transactional
     public List<Movie> getMoviesByYear(int year) {
         return movieRepository.findByYear(year);
     }
@@ -187,7 +186,6 @@ public class MovieService {
 
 
     //Récupérer les tags d'un film par son ID
-    @Transactional
     public List<Tag> getTagsByMovieId(Long movieId) {
         Movie movie = movieRepository.findById(movieId);
         if (movie != null) {
