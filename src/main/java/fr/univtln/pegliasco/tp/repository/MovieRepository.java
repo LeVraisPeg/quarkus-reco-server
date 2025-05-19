@@ -3,7 +3,6 @@ package fr.univtln.pegliasco.tp.repository;
 import fr.univtln.pegliasco.tp.model.Gender;
 import fr.univtln.pegliasco.tp.model.Movie;
 
-import fr.univtln.pegliasco.tp.model.view.MovieId;
 import fr.univtln.pegliasco.tp.model.view.RatingId;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.persistence.EntityManager;
@@ -19,16 +18,17 @@ import java.util.stream.Collectors;
 public class MovieRepository {
     @PersistenceContext
     EntityManager entityManager;
+
     public List<Movie> findAll() {
         return entityManager.createQuery("SELECT m FROM Movie m", Movie.class).getResultList();
     }
 
-    //findById
+    // findById
     public Movie findById(Long id) {
         return entityManager.find(Movie.class, id);
     }
 
-    //findPaginated
+    // findPaginated
     public List<Movie> findPaginated(int page, int size) {
         return entityManager.createQuery("SELECT m FROM Movie m", Movie.class)
                 .setFirstResult(page * size)
@@ -40,13 +40,6 @@ public class MovieRepository {
         return entityManager.createQuery("SELECT m FROM Movie m WHERE m.id IN :ids", Movie.class)
                 .setParameter("ids", ids)
                 .getResultList();
-    }
-
-    //findAllId
-    public List<MovieId> findAllId() {
-        return entityManager.createQuery(
-                "SELECT new MovieId (m.id, m.title,m.year) FROM Movie m",
-                MovieId.class).getResultList();
     }
 
     public void save(Movie movie) {
@@ -73,11 +66,10 @@ public class MovieRepository {
 
     public List<Movie> findByTitleContainsIgnoreCase(String title) {
         return entityManager.createQuery(
-                        "SELECT m FROM Movie m WHERE LOWER(m.title) LIKE :title", Movie.class)
+                "SELECT m FROM Movie m WHERE LOWER(m.title) LIKE :title", Movie.class)
                 .setParameter("title", "%" + title.toLowerCase() + "%")
                 .getResultList();
     }
-
 
     public void merge(Movie movie) {
         entityManager.merge(movie);
@@ -86,17 +78,20 @@ public class MovieRepository {
     public void update(Movie movie) {
         entityManager.merge(movie);
     }
+
     public void delete(Long id) {
         Movie movie = findById(id);
         if (movie != null) {
             entityManager.remove(movie);
         }
     }
+
     public List<Movie> findByTitle(String title) {
         return entityManager.createQuery("SELECT m FROM Movie m WHERE m.title = :title", Movie.class)
                 .setParameter("title", title)
                 .getResultList();
     }
+
     public List<Movie> findByYear(int year) {
         return entityManager.createQuery("SELECT m FROM Movie m WHERE m.year = :year", Movie.class)
                 .setParameter("year", year)
@@ -109,13 +104,13 @@ public class MovieRepository {
                 .setParameter("tag", tag)
                 .getResultList();
     }
+
     // Récupérer les films par genre
     public List<Movie> findByGender(String gender) {
         return entityManager.createQuery("SELECT m FROM Movie m JOIN m.genders g WHERE g.name = :gender", Movie.class)
                 .setParameter("gender", gender)
                 .getResultList();
     }
-
 
     public void flushAndClear() {
         entityManager.flush();
@@ -129,11 +124,10 @@ public class MovieRepository {
                 .getSingleResult() > 0;
     }
 
-    //persister un film
+    // persister un film
     public void persist(Movie movie) {
         entityManager.persist(movie);
-        }
-
+    }
 
     public Map<Long, Movie> findAllAsMap() {
         return entityManager.createQuery("SELECT m FROM Movie m", Movie.class)
