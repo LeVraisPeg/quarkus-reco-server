@@ -46,7 +46,7 @@
 
 
         public void importRatingsFromCsv(String filePath) throws IOException, CsvValidationException {
-            final int batchSize = 5000;
+            final int batchSize = 10000;
             List<Rating> currentBatch = new ArrayList<>(batchSize);
 
             Map<Long, Account> accountCache = accountService.findAllAsMap();
@@ -152,7 +152,7 @@
 
 
         public void importMoviesFromCsv(String filePath) throws IOException, CsvValidationException {
-            final int batchSize = 5000;
+            final int batchSize = 10000;
             List<Movie> allMovies = new ArrayList<>();
             Map<String, Gender> genreCache = new HashMap<>();
 
@@ -268,7 +268,7 @@
 
 
         public void importTagsFromCsv(String filePath) throws IOException, CsvValidationException {
-            final int batchSize = 5000;
+            final int batchSize = 10000;
             List<Tag> currentBatch = new ArrayList<>(batchSize);
 
             // Mise en cache des comptes et films
