@@ -28,6 +28,14 @@ public class MovieRepository {
         return entityManager.find(Movie.class, id);
     }
 
+    //findPaginated
+    public List<Movie> findPaginated(int page, int size) {
+        return entityManager.createQuery("SELECT m FROM Movie m", Movie.class)
+                .setFirstResult(page * size)
+                .setMaxResults(size)
+                .getResultList();
+    }
+
     public List<Movie> findByIds(List<Long> ids) {
         return entityManager.createQuery("SELECT m FROM Movie m WHERE m.id IN :ids", Movie.class)
                 .setParameter("ids", ids)
@@ -63,6 +71,12 @@ public class MovieRepository {
         }
     }
 
+    public List<Movie> findByTitleContainsIgnoreCase(String title) {
+        return entityManager.createQuery(
+                        "SELECT m FROM Movie m WHERE LOWER(m.title) LIKE :title", Movie.class)
+                .setParameter("title", "%" + title.toLowerCase() + "%")
+                .getResultList();
+    }
 
 
     public void merge(Movie movie) {

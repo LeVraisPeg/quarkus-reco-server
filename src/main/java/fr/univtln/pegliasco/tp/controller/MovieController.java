@@ -29,8 +29,11 @@ public class MovieController {
 
     // Récupérer tous les films
     @GET
-    public List<Movie> getAllMovies() {
-        return movieService.getAllMovies();
+    public List<Movie> getAllMovies(@QueryParam("page") @DefaultValue("0") int page,
+                                    @QueryParam("size") @DefaultValue("1000") int size) {
+        List<Movie> pagedMovies = movieService.getMoviesPaginated(page, size);
+        return pagedMovies;
+
     }
 
     // Ajouter un film
@@ -131,13 +134,14 @@ public class MovieController {
     @GET
     @Path("/title/{title}")
     public Response getMoviesByTitle(@PathParam("title") String title) {
-        List<Movie> movies = movieService.getMoviesByTitle(title);
+        List<Movie> movies = movieService.getMoviesByTitleContainsIgnoreCase(title);
         if (movies != null && !movies.isEmpty()) {
             return Response.ok(movies).build();
         } else {
             return Response.status(Response.Status.NOT_FOUND).build();
         }
     }
+
 
     // Récupérer les films par année
     @GET

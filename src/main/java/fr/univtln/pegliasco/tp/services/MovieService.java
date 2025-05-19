@@ -59,6 +59,22 @@ public class MovieService {
         return movieRepository.findById(id);
     }
 
+    //getMoviesPaginated
+    @Transactional
+    public List<Movie> getMoviesPaginated(int page, int size) {
+        List<Movie> movies = movieRepository.findPaginated(page, size);
+        movies.forEach(movie -> {
+            if (movie.getRatings() != null) {
+                movie.getRatings().size();
+            }
+        });
+        return movies;
+    }
+
+    public List<Movie> getMoviesByTitleContainsIgnoreCase(String title) {
+        return movieRepository.findByTitleContainsIgnoreCase(title);
+    }
+
     //getMoviesByIds
     @Transactional
     public List<Movie> getMoviesByIds(List<Long> ids) {
