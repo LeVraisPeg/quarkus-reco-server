@@ -1,9 +1,9 @@
 package fr.univtln.pegliasco.tp.services;
 
+import fr.univtln.pegliasco.tp.model.Gender;
 import fr.univtln.pegliasco.tp.model.Movie;
 import fr.univtln.pegliasco.tp.model.Rating;
 import fr.univtln.pegliasco.tp.model.Tag;
-import fr.univtln.pegliasco.tp.model.view.MovieId;
 import fr.univtln.pegliasco.tp.model.view.RatingId;
 import fr.univtln.pegliasco.tp.repository.MovieRepository;
 import jakarta.transaction.Transactional;
@@ -23,25 +23,28 @@ public class MovieService {
         this.movieRepository = movieRepository;
     }
 
-    //getAllMoviesId
-    public List<MovieId> getAllMoviesId() {
-        return movieRepository.findAllId();
-    }
-
-    //generateCSV
-    public static File generateCSV(List<MovieId> movies) throws IOException {
+    // generateCSV
+    public static File generateCSV(List<Movie> movies) throws IOException {
         File tempFile = File.createTempFile("movies-", ".csv");
         try (FileWriter writer = new FileWriter(tempFile)) {
-            writer.append("id,title,year\n");
-            for (MovieId p : movies) {
-                writer.append(String.valueOf(p.id())).append(",")
-                        .append(String.valueOf(p.title())).append(",")
-                        .append(String.valueOf(p.year())).append("\n");
+            writer.append("movieId,title,released,runtime,genre,director,writer,actors,plot,country\n");
+            for (Movie m : movies) {
+                writer.append(String.valueOf(m.getId())).append(",")
+                        .append(String.valueOf(m.getTitle())).append(",")
+                        .append(String.valueOf(m.getYear())).append(",")
+                        .append(String.valueOf(m.getRuntime())).append(",")
+                        .append(String.join(" | ", m.getGenders()
+                                .stream().map(Gender::getName).toList()))
+                        .append(",")
+                        .append(String.valueOf(m.getDirector())).append(",")
+                        .append(String.join(" | ", m.getWriters())).append(",")
+                        .append(String.join(" | ", m.getActors())).append(",")
+                        .append(String.valueOf(m.getPlot())).append(",")
+                        .append(String.valueOf(m.getCountry())).append("\n");
             }
         }
         return tempFile;
     }
-
 
     @Transactional
     public List<Movie> getAllMovies() {
@@ -54,13 +57,11 @@ public class MovieService {
         return movies;
     }
 
-
     public Movie getMovieById(Long id) {
         return movieRepository.findById(id);
     }
 
-    //getMoviesPaginated
-
+    // getMoviesPaginated
     public List<Movie> getMoviesPaginated(int page, int size) {
         List<Movie> movies = movieRepository.findPaginated(page, size);
         movies.forEach(movie -> {
@@ -75,7 +76,7 @@ public class MovieService {
         return movieRepository.findByTitleSmart(title);
     }
 
-    //getMoviesByIds
+    // getMoviesByIds
 
     public List<Movie> getMoviesByIds(List<Long> ids) {
         return movieRepository.findByIds(ids);
@@ -85,7 +86,6 @@ public class MovieService {
     public void addMovie(Movie movie) {
         movieRepository.save(movie);
     }
-
 
     @Transactional
     public void deleteMovie(Long id) {
@@ -106,7 +106,7 @@ public class MovieService {
         }
     }
 
-    //Récupérer les notes d'un film par son ID
+    // Récupérer les notes d'un film par son ID
 
     public List<Rating> getRatingsByMovieId(Long movieId) {
         Movie movie = movieRepository.findById(movieId);
@@ -154,8 +154,6 @@ public class MovieService {
         return movieRepository.findByYear(year);
     }
 
-
-
     @Transactional
     public void saveOrUpdate(Movie movie) {
         if (movie.getId() != null && movieRepository.existsById(movie.getId())) {
@@ -167,7 +165,7 @@ public class MovieService {
         }
     }
 
-    //find or create by id
+    // find or create by id
     @Transactional
     public Movie findOrCreateById(Long id) {
         Movie movie = movieRepository.findById(id);
@@ -179,13 +177,12 @@ public class MovieService {
         return movie;
     }
 
-    //findAllAsMap
+    // findAllAsMap
     public Map<Long, Movie> findAllAsMap() {
         return movieRepository.findAllAsMap();
     }
 
-
-    //Récupérer les tags d'un film par son ID
+    // Récupérer les tags d'un film par son ID
     public List<Tag> getTagsByMovieId(Long movieId) {
         Movie movie = movieRepository.findById(movieId);
         if (movie != null) {

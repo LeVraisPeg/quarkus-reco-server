@@ -2,7 +2,6 @@ package fr.univtln.pegliasco.tp.controller;
 
 import fr.univtln.pegliasco.tp.model.Rating;
 import fr.univtln.pegliasco.tp.model.Tag;
-import fr.univtln.pegliasco.tp.model.view.MovieId;
 import fr.univtln.pegliasco.tp.services.MovieService;
 import fr.univtln.pegliasco.encryption.differential_privacy.MakeNoise;
 import fr.univtln.pegliasco.tp.model.Movie;
@@ -30,7 +29,7 @@ public class MovieController {
     // Récupérer tous les films
     @GET
     public List<Movie> getAllMovies(@QueryParam("page") @DefaultValue("0") int page,
-                                    @QueryParam("size") @DefaultValue("1000") int size) {
+            @QueryParam("size") @DefaultValue("1000") int size) {
         List<Movie> pagedMovies = movieService.getMoviesPaginated(page, size);
         return pagedMovies;
 
@@ -54,14 +53,15 @@ public class MovieController {
     // Mettre à jour un film par son ID
     @PUT
     @Path("/{id}/{title}/{year}/{director}/{runtime}/{plot}/{country}/{poster}")
-    public Response updateMovie(@PathParam("id") Long id,@PathParam("title") String title,@PathParam("year") Integer year, @PathParam("director") String director,
-                                @PathParam("runtime") Integer runtime,@PathParam("plot") String plot,@PathParam("country") String country,
-                                @PathParam("poster") String poster, Movie movie) {
+    public Response updateMovie(@PathParam("id") Long id, @PathParam("title") String title,
+            @PathParam("year") Integer year, @PathParam("director") String director,
+            @PathParam("runtime") Integer runtime, @PathParam("plot") String plot, @PathParam("country") String country,
+            @PathParam("poster") String poster, Movie movie) {
         movie.setTitle(title);
         SimpleDateFormat dateFormat = new SimpleDateFormat("dd MMM yyyy", Locale.ENGLISH);
-        try{
+        try {
             movie.setYear((dateFormat.parse(year.toString())));
-        }catch (Exception e){
+        } catch (Exception e) {
             return Response.status(Response.Status.BAD_REQUEST).entity("Invalid date format").build();
         }
         movie.setDirector(director);
@@ -142,7 +142,6 @@ public class MovieController {
         }
     }
 
-
     // Récupérer les films par année
     @GET
     @Path("/year/{year}")
@@ -155,7 +154,7 @@ public class MovieController {
         }
     }
 
-    //Récupérer les tags d'un film par son ID
+    // Récupérer les tags d'un film par son ID
     @GET
     @Path("/tags/{movieId}")
     public Response getTagsByMovieId(@PathParam("movieId") Long movieId) {
@@ -164,19 +163,18 @@ public class MovieController {
         return Response.ok(tags != null ? tags : List.of()).build();
     }
 
-
-    //getAllMoviesAsCSV
+    // getAllMoviesAsCSV
     @GET
-    @Path("/csv")
+    @Path("/file")
     @Produces("text/csv")
     public Response getAllMoviesAsCSV() {
-        List<MovieId> pagedMovies = movieService.getAllMoviesId();
+        List<Movie> allMovies = movieService.getAllMovies();
         try {
-            File csv = MovieService.generateCSV(pagedMovies);
+            File csv = MovieService.generateCSV(allMovies);
             return Response.ok(csv)
                     .header("Content-Disposition", "attachment; filename=\"movies.csv\"")
                     .build();
-        }catch (Exception e) {
+        } catch (Exception e) {
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("Error generating CSV").build();
         }
     }
