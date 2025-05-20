@@ -4,13 +4,18 @@
     import com.opencsv.CSVReaderBuilder;
     import com.opencsv.exceptions.CsvValidationException;
     import fr.univtln.pegliasco.tp.model.*;
+    import fr.univtln.pegliasco.tp.model.nosql.MovieElastic;
+    import fr.univtln.pegliasco.tp.model.nosql.MovieMapper;
     import jakarta.enterprise.context.ApplicationScoped;
     import jakarta.inject.Inject;
     import jakarta.persistence.EntityManager;
     import jakarta.persistence.EntityManagerFactory;
     import jakarta.persistence.EntityTransaction;
+    import fr.univtln.pegliasco.tp.model.nosql.MovieElasticService;
 
     import java.io.IOException;
+    import java.io.InputStream;
+    import java.io.InputStreamReader;
     import java.text.ParseException;
     import java.text.SimpleDateFormat;
     import java.util.*;
@@ -40,19 +45,38 @@
         @Inject
         EntityManagerFactory entityManagerFactory;
 
+        @Inject
+        MovieElasticService movieElasticService;
+
         private static final Logger logger = Logger.getLogger(CsvImporterService.class.getName());
         @Inject
         TagService tagService;
 
+        private void waitForElasticsearchReady() {
+            int maxRetries = 30;
+            int retry = 0;
+            while (retry < maxRetries) {
+                try {
+                    movieElasticService.ping(); // À implémenter dans MovieElasticService
+                    logger.info("Elasticsearch est prêt.");
+                    return;
+                } catch (Exception e) {
+                    retry++;
+                    logger.warnf("Elasticsearch non prêt, tentative %d/%d", retry, maxRetries);
+                    try { Thread.sleep(3000); } catch (InterruptedException ignored) {}
+                }
+            }
+            throw new RuntimeException("Elasticsearch n'est pas prêt après plusieurs tentatives.");
+        }
 
-        public void importRatingsFromCsv(String filePath) throws IOException, CsvValidationException {
+        public void importRatingsFromCsv(InputStream inputStream) throws IOException, CsvValidationException {
             final int batchSize = 10000;
             List<Rating> currentBatch = new ArrayList<>(batchSize);
 
             Map<Long, Account> accountCache = accountService.findAllAsMap();
             Map<Long, Movie> movieCache = movieService.findAllAsMap();
 
-            try (CSVReader csvReader = new CSVReader(new FileReader(filePath))) {
+            try (CSVReader csvReader = new CSVReader(new InputStreamReader(inputStream))) {
                 String[] tokens;
                 csvReader.readNext(); // skip header
 
@@ -89,7 +113,7 @@
                     persistBatchRating(currentBatch);
                 }
 
-                System.out.println("Import terminé depuis : " + filePath);
+                System.out.println("Import terminé depuis : " + inputStream.toString());
             }
         }
 
@@ -151,12 +175,12 @@
 
 
 
-        public void importMoviesFromCsv(String filePath) throws IOException, CsvValidationException {
+        public void importMoviesFromCsv(InputStream inputStream) throws IOException, CsvValidationException {
             final int batchSize = 10000;
             List<Movie> allMovies = new ArrayList<>();
             Map<String, Gender> genreCache = new HashMap<>();
 
-            try (CSVReader csvReader = new CSVReaderBuilder(new FileReader(filePath))
+            try (CSVReader csvReader = new CSVReaderBuilder(new InputStreamReader(inputStream))
                     .withCSVParser(new CSVParserBuilder()
                             .withSeparator(',')
                             .withQuoteChar('"')
@@ -226,24 +250,42 @@
             // Attendre la fin
             CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
 
-            logger.infof("Importation terminée depuis le fichier : %s", filePath);
+            logger.infof("Importation terminée depuis le fichier : %s", inputStream.toString());
         }
 
 
 
-
-
         private void persistBatchWithTransaction(List<Movie> movies) {
+            // Attendre qu'Elasticsearch soit prêt avant de commencer le batch
+            waitForElasticsearchReady();
+
             EntityManager entityManager = em.getEntityManagerFactory().createEntityManager();
             entityManager.getTransaction().begin();
 
             try {
                 for (int i = 0; i < movies.size(); i++) {
                     Movie movie = movies.get(i);
-                    //logger.infof("Persisting movie #%d: ID=%d, Title='%s', Director='%s', Country='%s'",
-                      //      i, movie.getId(), movie.getTitle(), movie.getDirector(), movie.getCountry());
                     try {
                         entityManager.persist(movie);
+
+                        // Retry sur l'indexation Elasticsearch
+                        int maxRetries = 5;
+                        int retry = 0;
+                        boolean success = false;
+                        while (retry < maxRetries && !success) {
+                            try {
+                                MovieElastic movieElastic = MovieMapper.toElastic(movie);
+                                movieElasticService.indexMovie(movieElastic);
+                                success = true;
+                            } catch (IOException e) {
+                                retry++;
+                                if (retry >= maxRetries) {
+                                    e.printStackTrace();
+                                } else {
+                                    Thread.sleep(2000); // attendre 2s avant de réessayer
+                                }
+                            }
+                        }
                     } catch (Exception e) {
                         logger.errorf(e, "Erreur lors de la persistance du film : %s (ID=%d)", movie.getTitle(), movie.getId());
                     }
@@ -266,8 +308,7 @@
         }
 
 
-
-        public void importTagsFromCsv(String filePath) throws IOException, CsvValidationException {
+        public void importTagsFromCsv(InputStream inputStream) throws IOException, CsvValidationException {
             final int batchSize = 10000;
             List<Tag> currentBatch = new ArrayList<>(batchSize);
 
@@ -278,7 +319,7 @@
             // Map pour éviter les doublons de tags : "tagName::userId"
             Map<String, Tag> tagMap = new HashMap<>();
 
-            try (CSVReader csvReader = new CSVReader(new FileReader(filePath))) {
+            try (CSVReader csvReader = new CSVReader(new InputStreamReader(inputStream))) {
                 String[] tokens;
                 csvReader.readNext(); // skip header
 
@@ -316,7 +357,7 @@
 
                 currentBatch.addAll(tagMap.values());
                 persistBatchTag(currentBatch);
-                System.out.println("Import terminé depuis : " + filePath);
+                System.out.println("Import terminé depuis : " + inputStream.toString());
             }
         }
 
