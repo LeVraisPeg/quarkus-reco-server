@@ -1,16 +1,15 @@
 package fr.univtln.pegliasco.tp.controller;
 
 import fr.univtln.pegliasco.encryption.differential_privacy.MakeNoise;
-import fr.univtln.pegliasco.tp.model.Account;
-import fr.univtln.pegliasco.tp.model.Movie;
+
 import fr.univtln.pegliasco.tp.model.Rating;
+import fr.univtln.pegliasco.tp.model.RatingCache;
 import fr.univtln.pegliasco.tp.model.view.RatingId;
 import fr.univtln.pegliasco.tp.services.RatingService;
 
 import jakarta.inject.Inject;
 import jakarta.ws.rs.*;
-import jakarta.ws.rs.client.ClientBuilder;
-import jakarta.ws.rs.client.Client;
+
 
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
@@ -35,6 +34,13 @@ public class RatingController {
             @QueryParam("size") @DefaultValue("1000") int size) {
         List<Rating> pagedRatings = ratingService.getRatingsPaginated(page, size);
         return MakeNoise.applyLapplaceNoise(pagedRatings);
+    }
+    //Récupérer toutes les évaluations en cache
+    @GET
+    @Path("/cache")
+    public List<RatingCache> getAllRatingsFromCache(@QueryParam("page") @DefaultValue("0") int page,
+            @QueryParam("size") @DefaultValue("1000") int size) {
+        return ratingService.getRatingsPaginatedFromCache(page, size);
     }
 
     @GET
@@ -61,11 +67,27 @@ public class RatingController {
         return Response.status(Response.Status.CREATED).entity(rating).build();
     }
 
+    // Ajouter une évaluation au cache
+    @POST
+    @Path("/cache")
+    public Response addRatingToCache(RatingCache rating) {
+        ratingService.addRatingToCache(rating);
+        return Response.status(Response.Status.CREATED).entity(rating).build();
+    }
+
     // Supprimer une évaluation par son ID
     @DELETE
     @Path("/{id}")
     public Response deleteRating(@PathParam("id") Long id) {
         ratingService.deleteRating(id);
+        return Response.noContent().build();
+    }
+
+    // Supprimer une évalution du cache par son ID
+    @DELETE
+    @Path("/cache/{id}")
+    public Response deleteRatingFromCache(@PathParam("id") Long id) {
+        ratingService.deleteRatingtoCache(id);
         return Response.noContent().build();
     }
 
@@ -79,6 +101,18 @@ public class RatingController {
         ratingService.updateRating(id,rating);
         return Response.ok(rating).build();
     }
+
+    // Mettre à jour une évaluation dans le cache par son ID
+    @PUT
+    @Path("/cache/{id}/{value}")
+    public Response updateRatingInCache(@PathParam("id") Long id,
+            @PathParam("value") Float rate, RatingCache rating) {
+        rating.setId(id);
+        rating.setRate(rate);
+        ratingService.updateRatingToCache(id,rating);
+        return Response.ok(rating).build();
+    }
+
     // Récupérer une évaluation par son ID
     @GET
     @Path("/{id}")
@@ -86,6 +120,18 @@ public class RatingController {
         Rating rating = ratingService.getRatingById(id);
         if (rating != null) {
             return Response.ok(MakeNoise.applyLapplaceNoise(rating)).build();
+        } else {
+            return Response.status(Response.Status.NOT_FOUND).build();
+        }
+    }
+
+    // Récupérer une évaluation en cache par son ID
+    @GET
+    @Path("/cache/{id}")
+    public Response getRatingCacheById(@PathParam("id") Long id) {
+        RatingCache rating = ratingService.getRatingCacheById(id);
+        if (rating != null) {
+            return Response.ok(rating).build();
         } else {
             return Response.status(Response.Status.NOT_FOUND).build();
         }

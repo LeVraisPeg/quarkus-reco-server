@@ -2,6 +2,7 @@ package fr.univtln.pegliasco.tp.repository;
 
 import fr.univtln.pegliasco.encryption.differential_privacy.MakeNoise;
 import fr.univtln.pegliasco.tp.model.Rating;
+import fr.univtln.pegliasco.tp.model.RatingCache;
 import fr.univtln.pegliasco.tp.model.view.RatingId;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.persistence.EntityManager;
@@ -15,9 +16,7 @@ public class RatingRepository {
     @PersistenceContext
     EntityManager entityManager;
 
-    public List<Rating> findAll() {
-        return entityManager.createQuery("SELECT r FROM Rating r", Rating.class).getResultList();
-    }
+
 
     public List<Rating> findPaginated(int page, int size) {
         return entityManager.createQuery("SELECT r FROM Rating r", Rating.class)
@@ -26,8 +25,19 @@ public class RatingRepository {
                 .getResultList();
     }
 
+    public List<RatingCache> findPaginatedFromCache(int page, int size) {
+        return entityManager.createQuery("SELECT r FROM RatingCache r", RatingCache.class)
+                .setFirstResult(page * size)
+                .setMaxResults(size)
+                .getResultList();
+    }
+
     public Rating findById(Long id) {
         return entityManager.find(Rating.class, id);
+    }
+
+    public RatingCache findCacheById(Long id) {
+        return entityManager.find(RatingCache.class, id);
     }
 
     // findByAccountIdAndMovieId
@@ -43,8 +53,22 @@ public class RatingRepository {
         entityManager.merge(rating);
     }
 
+    public void updateCache(RatingCache rating) {
+        entityManager.merge(rating);
+    }
+
     public void add(Rating rating) {
         entityManager.persist(rating);
+    }
+
+    public void addCache(RatingCache rating) {
+        entityManager.persist(rating);
+    }
+    public void deleteCache(Long id) {
+        RatingCache rating = entityManager.find(RatingCache.class, id);
+        if (rating != null) {
+            entityManager.remove(rating);
+        }
     }
 
     public void delete(Long id) {

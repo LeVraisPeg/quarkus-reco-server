@@ -1,6 +1,7 @@
 package fr.univtln.pegliasco.tp.services;
 
 import fr.univtln.pegliasco.tp.model.Rating;
+import fr.univtln.pegliasco.tp.model.RatingCache;
 import fr.univtln.pegliasco.tp.model.User;
 import fr.univtln.pegliasco.tp.model.view.RatingId;
 import fr.univtln.pegliasco.tp.repository.RatingRepository;
@@ -33,38 +34,44 @@ public class RatingService {
         return tempFile;
     }
 
-    @Transactional
-    public List<Rating> getAllRatings() {
-        List<Rating> ratings = ratingRepository.findAll();
-        ratings.forEach(rating -> {
-            if (rating.getAccount() instanceof User user && user.getRatings() != null) {
-                user.getRatings().size();
-            }
-        });
-        return ratings;
-    }
 
     public List<RatingId> getAllRatingsId() {
         return ratingRepository.findAllId();
     }
 
+
+    public RatingCache getRatingCacheById(Long id) {
+        return ratingRepository.findCacheById(id);
+    }
+
     @Transactional
     public List<Rating> getRatingsPaginated(int page, int size) {
         List<Rating> ratings = ratingRepository.findPaginated(page, size);
-
-        // Force l'initialisation des collections liées (si besoin)
-        ratings.forEach(rating -> {
-            if (rating.getAccount() instanceof User user && user.getRatings() != null) {
-                user.getRatings().size();
-            }
-        });
-
         return ratings;
     }
 
     @Transactional
+    public List<RatingCache> getRatingsPaginatedFromCache(int page, int size) {
+        List<RatingCache> ratings = ratingRepository.findPaginatedFromCache(page, size);
+        return ratings;
+    }
+
+    //addRating
+    @Transactional
     public void addRating(Rating rating) {
         ratingRepository.add(rating);
+    }
+
+    //addRatingToCache
+    @Transactional
+    public void addRatingToCache(RatingCache rating) {
+        ratingRepository.addCache(rating);
+    }
+
+    //deleteRatingToCache
+    @Transactional
+    public void deleteRatingtoCache(Long id) {
+        ratingRepository.deleteCache(id);
     }
 
     @Transactional
@@ -84,6 +91,16 @@ public class RatingService {
         if (existingRating != null) {
             existingRating.setRate(rating.getRate());
             ratingRepository.update(existingRating);
+        }
+    }
+
+    //updateRatingToCache
+    @Transactional
+    public void updateRatingToCache(Long id, RatingCache rating) {
+        RatingCache existingRatingCache = ratingRepository.findCacheById(id);
+        if (existingRatingCache != null) {
+            existingRatingCache.setRate(rating.getRate());
+            ratingRepository.updateCache(existingRatingCache);
         }
     }
 
