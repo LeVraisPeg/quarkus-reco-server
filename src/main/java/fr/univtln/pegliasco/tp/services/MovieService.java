@@ -25,22 +25,22 @@ public class MovieService {
 
     // generateCSV
     public static File generateCSV(List<Movie> movies) throws IOException {
-        File tempFile = File.createTempFile("movies-", ".csv");
+        File tempFile = File.createTempFile("movies", ".csv");
         try (FileWriter writer = new FileWriter(tempFile)) {
             writer.append("movieId,title,released,runtime,genre,director,writer,actors,plot,country\n");
             for (Movie m : movies) {
                 writer.append(String.valueOf(m.getId())).append(",")
-                        .append(String.valueOf(m.getTitle())).append(",")
+                        .append('"' + String.valueOf(m.getTitle()) + '"').append(",")
                         .append(String.valueOf(m.getYear())).append(",")
                         .append(String.valueOf(m.getRuntime())).append(",")
-                        .append(String.join(" | ", m.getGenders()
-                                .stream().map(Gender::getName).toList()))
+                        .append('"' + String.join("|", m.getGenders()
+                                .stream().map(Gender::getName).toList()) + '"')
                         .append(",")
-                        .append(String.valueOf(m.getDirector())).append(",")
-                        .append(String.join(" | ", m.getWriters())).append(",")
-                        .append(String.join(" | ", m.getActors())).append(",")
-                        .append(String.valueOf(m.getPlot())).append(",")
-                        .append(String.valueOf(m.getCountry())).append("\n");
+                        .append('"' + String.valueOf(m.getDirector()) + '"').append(",")
+                        .append('"' + String.join("|", m.getWriters()) + '"').append(",")
+                        .append('"' + String.join("|", m.getActors()) + '"').append(",")
+                        .append('"' + String.valueOf(m.getPlot()) + '"').append(",")
+                        .append('"' + String.valueOf(m.getCountry()) + '"').append("\n");
             }
         }
         return tempFile;

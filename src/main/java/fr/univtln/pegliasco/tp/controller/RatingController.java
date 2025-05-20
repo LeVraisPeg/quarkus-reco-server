@@ -10,16 +10,12 @@ import fr.univtln.pegliasco.tp.services.RatingService;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.*;
 
-
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
-
-
-import jakarta.ws.rs.client.Entity;
 
 @Path("/rating")
 @Produces(MediaType.APPLICATION_JSON)
@@ -35,7 +31,8 @@ public class RatingController {
         List<Rating> pagedRatings = ratingService.getRatingsPaginated(page, size);
         return MakeNoise.applyLapplaceNoise(pagedRatings);
     }
-    //Récupérer toutes les évaluations en cache
+
+    // Récupérer toutes les évaluations en cache
     @GET
     @Path("/cache")
     public List<RatingCache> getAllRatingsFromCache(@QueryParam("page") @DefaultValue("0") int page,
@@ -44,14 +41,30 @@ public class RatingController {
     }
 
     @GET
+    @Path("/fileNoise")
+    @Produces("text/csv")
+    public Response getAllRatingsNoisyAsCSV() {
+        List<RatingId> allRatings = ratingService.getAllRatingsId();
+        // Application du bruit différentiel
+        List<RatingId> noisyRatings = MakeNoise.applyLapplaceNoiselist(allRatings);
+        try {
+            File csv = RatingService.generateCSV(noisyRatings);
+            return Response.ok(csv)
+                    .header("Content-Disposition", "attachment; filename=\"ratings.csv\"")
+                    .build();
+        } catch (IOException e) {
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("Error generating CSV").build();
+        }
+    }
+
+    @GET
     @Path("/file")
     @Produces("text/csv")
     public Response getAllRatingsAsCSV() {
-        List<RatingId> pagedRatings = ratingService.getAllRatingsId();
+        List<RatingId> allRatings = ratingService.getAllRatingsId();
         // Application du bruit différentiel
-        List<RatingId> noisyRatings = MakeNoise.applyLapplaceNoiselist(pagedRatings);
         try {
-            File csv = RatingService.generateCSV(noisyRatings);
+            File csv = RatingService.generateCSV(allRatings);
             return Response.ok(csv)
                     .header("Content-Disposition", "attachment; filename=\"ratings.csv\"")
                     .build();
@@ -98,7 +111,7 @@ public class RatingController {
             @PathParam("value") Float rate, Rating rating) {
         rating.setId(id);
         rating.setRate(rate);
-        ratingService.updateRating(id,rating);
+        ratingService.updateRating(id, rating);
         return Response.ok(rating).build();
     }
 
@@ -109,7 +122,7 @@ public class RatingController {
             @PathParam("value") Float rate, RatingCache rating) {
         rating.setId(id);
         rating.setRate(rate);
-        ratingService.updateRatingToCache(id,rating);
+        ratingService.updateRatingToCache(id, rating);
         return Response.ok(rating).build();
     }
 
