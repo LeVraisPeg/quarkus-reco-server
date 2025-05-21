@@ -23,7 +23,7 @@ public class MovieMapper {
                 : null;
 
         return new MovieElastic(
-                String.valueOf(movie.getId()),
+                movie.getId(),
                 movie.getTitle(),
                 year,
                 movie.getDirector(),

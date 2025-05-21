@@ -3,7 +3,7 @@ package fr.univtln.pegliasco.tp.model.nosql;
 import java.util.List;
 
 public class MovieElastic {
-    private String id;
+    private Long id;
     private String title;
     private int year;
     private String director;
@@ -19,7 +19,7 @@ public class MovieElastic {
     public MovieElastic() {
     }
 
-    public MovieElastic(String id, String title, int year, String director,List<String> writers,List<String> actors,
+    public MovieElastic(Long id, String title, int year, String director,List<String> writers,List<String> actors,
                         String plot, String country, int runtime, List<String> genders,String poster, List<String> tags) {
         this.id = id;
         this.title = title;
@@ -36,11 +36,11 @@ public class MovieElastic {
     }
 
     // Getters et Setters
-    public String getId() {
+    public Long getId() {
         return id;
     }
 
-    public void setId(String id) {
+    public void setId(Long id) {
         this.id = id;
     }
 
