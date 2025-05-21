@@ -5,9 +5,7 @@ import fr.univtln.pegliasco.tp.model.Movie;
 import fr.univtln.pegliasco.tp.model.Rating;
 import fr.univtln.pegliasco.tp.model.Tag;
 import fr.univtln.pegliasco.tp.model.nosql.MovieElastic;
-import fr.univtln.pegliasco.tp.model.nosql.MovieElasticService;
 import fr.univtln.pegliasco.tp.model.nosql.MovieMapper;
-import fr.univtln.pegliasco.tp.model.view.RatingId;
 import fr.univtln.pegliasco.tp.repository.MovieRepository;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
@@ -207,4 +205,7 @@ public class MovieService {
         }
     }
 
+    public List<MovieElastic> searchMovies(String keyword) throws IOException {
+        return movieElasticService.searchMovies(keyword);
+    }
 }

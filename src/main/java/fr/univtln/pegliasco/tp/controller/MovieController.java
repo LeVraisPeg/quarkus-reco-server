@@ -2,10 +2,11 @@ package fr.univtln.pegliasco.tp.controller;
 
 import fr.univtln.pegliasco.tp.model.Rating;
 import fr.univtln.pegliasco.tp.model.Tag;
+import fr.univtln.pegliasco.tp.model.nosql.MovieElastic;
 import fr.univtln.pegliasco.tp.services.MovieService;
 import fr.univtln.pegliasco.encryption.differential_privacy.MakeNoise;
 import fr.univtln.pegliasco.tp.model.Movie;
-import fr.univtln.pegliasco.tp.model.nosql.MovieElasticService;
+import fr.univtln.pegliasco.tp.services.MovieElasticService;
 
 import jakarta.inject.Inject;
 import jakarta.ws.rs.*;
@@ -150,7 +151,7 @@ public class MovieController {
     @GET
     @Path("/search")
     @Produces(MediaType.APPLICATION_JSON)
-    public List<Movie> search(@QueryParam("q") String query) throws IOException {
+    public List<MovieElastic> search(@QueryParam("q") String query) throws IOException {
         return movieElasticService.searchMovies(query);
     }
 

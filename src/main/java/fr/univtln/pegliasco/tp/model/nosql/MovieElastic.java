@@ -7,24 +7,32 @@ public class MovieElastic {
     private String title;
     private int year;
     private String director;
+    private List<String> writers;
+    private List<String> actors;
     private String plot;
     private String country;
     private int runtime;
     private List<String> genders;
+    private String poster;
+    private List<String> tags;
 
     public MovieElastic() {
     }
 
-    public MovieElastic(String id, String title, int year, String director,
-                        String plot, String country, int runtime, List<String> genders) {
+    public MovieElastic(String id, String title, int year, String director,List<String> writers,List<String> actors,
+                        String plot, String country, int runtime, List<String> genders,String poster, List<String> tags) {
         this.id = id;
         this.title = title;
         this.year = year;
+        this.runtime = runtime;
         this.director = director;
+        this.actors = actors;
+        this.writers = writers;
         this.plot = plot;
         this.country = country;
-        this.runtime = runtime;
         this.genders = genders;
+        this.poster = poster;
+        this.tags = tags;
     }
 
     // Getters et Setters
@@ -90,5 +98,30 @@ public class MovieElastic {
 
     public void setGenders(List<String> genders) {
         this.genders = genders;
+    }
+
+    public String getPoster() {
+        return poster;
+    }
+    public void setPoster(String poster) {
+        this.poster = poster;
+    }
+    public List<String> getTags() {
+        return tags;
+    }
+    public void setTags(List<String> tags) {
+        this.tags = tags;
+    }
+    public List<String> getWriters() {
+        return writers;
+    }
+    public void setWriters(List<String> writers) {
+        this.writers = writers;
+    }
+    public List<String> getActors() {
+        return actors;
+    }
+    public void setActors(List<String> actors) {
+        this.actors = actors;
     }
 }

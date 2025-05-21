@@ -11,7 +11,6 @@
     import jakarta.persistence.EntityManager;
     import jakarta.persistence.EntityManagerFactory;
     import jakarta.persistence.EntityTransaction;
-    import fr.univtln.pegliasco.tp.model.nosql.MovieElasticService;
 
     import java.io.IOException;
     import java.io.InputStream;
@@ -23,11 +22,7 @@
 
     import org.jboss.logging.Logger;
     import com.opencsv.CSVReader;
-    import java.io.FileReader;
-    import java.util.concurrent.ExecutorService;
-    import java.util.concurrent.Executors;
-    import java.util.regex.Matcher;
-    import java.util.regex.Pattern;
+
     import java.util.stream.Collectors;
 
     @ApplicationScoped

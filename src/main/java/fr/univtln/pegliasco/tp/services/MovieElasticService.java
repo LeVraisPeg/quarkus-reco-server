@@ -1,18 +1,16 @@
-package fr.univtln.pegliasco.tp.model.nosql;
+package fr.univtln.pegliasco.tp.services;
 
 
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
 import co.elastic.clients.elasticsearch.core.GetResponse;
-import co.elastic.clients.elasticsearch.core.SearchResponse;
-import co.elastic.clients.elasticsearch.core.search.Hit;
 
 import fr.univtln.pegliasco.tp.model.Movie;
+import fr.univtln.pegliasco.tp.model.nosql.MovieElastic;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
-import jakarta.inject.Singleton;
+
 import java.io.IOException;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @ApplicationScoped
 public class MovieElasticService {
@@ -39,14 +37,17 @@ public class MovieElasticService {
         );
     }
 
-    public List<Movie> searchMovies(String keyword) throws IOException {
+
+    public List<MovieElastic> searchMovies(String keyword) throws IOException {
         var response = client.search(s -> s
                 .index("movies")
                 .query(q -> q
                         .match(m -> m
                                 .field("title")
                                 .query(keyword)
-                        )), Movie.class);
+                                .fuzziness("AUTO")
+                        )
+                ), MovieElastic.class);
 
         return response.hits().hits().stream()
                 .map(hit -> hit.source())
@@ -69,21 +70,7 @@ public class MovieElasticService {
         return null;
     }
 
-    // Recherche par titre (match)
-    public List<MovieElastic> searchByTitle(String title) throws IOException {
-        SearchResponse<MovieElastic> response = client.search(s -> s
-                .index(INDEX)
-                .query(q -> q
-                        .match(m -> m
-                                .field("title")
-                                .query(title)
-                        )
-                ), MovieElastic.class);
 
-        return response.hits().hits().stream()
-                .map(Hit::source)
-                .collect(Collectors.toList());
-    }
 
 
 }

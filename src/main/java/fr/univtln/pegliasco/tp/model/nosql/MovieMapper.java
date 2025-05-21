@@ -14,19 +14,27 @@ public class MovieMapper {
             year = movie.getYear().toInstant().atZone(ZoneId.systemDefault()).getYear();
         }
 
-        List<String> genders = movie.getGenders().stream()
-                .map(g -> g.getName())
-                .collect(Collectors.toList());
+        List<String> genders = movie.getGenders() != null
+                ? movie.getGenders().stream().map(g -> g.getName()).collect(Collectors.toList())
+                : null;
+
+        List<String> tags = movie.getTags() != null
+                ? movie.getTags().stream().map(t -> t.getName()).collect(Collectors.toList())
+                : null;
 
         return new MovieElastic(
                 String.valueOf(movie.getId()),
                 movie.getTitle(),
                 year,
                 movie.getDirector(),
+                movie.getWriters(),
+                movie.getActors(),
                 movie.getPlot(),
                 movie.getCountry(),
-                movie.getRuntime(),
-                genders
+                movie.getRuntime() != null ? movie.getRuntime() : 0,
+                genders,
+                movie.getPoster(),
+                tags
         );
     }
 }
