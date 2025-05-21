@@ -23,4 +23,9 @@ public interface RecommendedInterface {
     @Path("/{userId}")
     List<List<Object>> getRecommendations(@PathParam("userId") Long userId,
                                           @QueryParam("top_n") int count);
+
+    @GET
+    @Path("/cold_recommendation")
+    List<List<Object>> getColdRecommendations(@QueryParam("top_n") int count);
+
 }

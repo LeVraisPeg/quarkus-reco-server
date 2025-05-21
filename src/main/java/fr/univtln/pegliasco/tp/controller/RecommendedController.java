@@ -17,4 +17,9 @@ public class RecommendedController {
     public List<Movie> getRecommendations(@QueryParam("id") Long id, @QueryParam("nb") int nb) {
         return recommendedService.fetchRecommendations(id, nb);
     }
+    @GET
+    @Path("/cold_recommendation")
+    public List<Movie> getColdRecommendations(@QueryParam("nb") int nb) {
+        return recommendedService.fetchColdRecommendations(nb);
+    }
 }

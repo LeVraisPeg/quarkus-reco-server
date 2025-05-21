@@ -28,4 +28,13 @@ public class RecommendedService {
         return movieService.getMoviesByIds(movieIds);
     }
 
+    public List<Movie> fetchColdRecommendations(int count) {
+        List<List<Object>> recommendations = recommendedInterface.getColdRecommendations(count);
+        List<Long> movieIds = recommendations.stream()
+                .map(rec -> ((Number) rec.get(0)).longValue())
+                .collect(Collectors.toList());
+
+        return movieService.getMoviesByIds(movieIds);
+    }
+
 }
