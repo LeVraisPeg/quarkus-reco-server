@@ -13,7 +13,7 @@ import java.util.List;
 public class User extends Account {
 
     @OneToMany(mappedBy = "account")
-    private List<Rating> ratings;
+    private List<RatingCache> ratings;
 
     @OneToMany(mappedBy = "account")
     private List<Tag> tags;

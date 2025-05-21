@@ -64,6 +64,7 @@ public class RatingRepository {
     public void addCache(RatingCache rating) {
         entityManager.persist(rating);
     }
+
     public void deleteCache(Long id) {
         RatingCache rating = entityManager.find(RatingCache.class, id);
         if (rating != null) {

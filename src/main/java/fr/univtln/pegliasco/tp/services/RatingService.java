@@ -1,10 +1,11 @@
 package fr.univtln.pegliasco.tp.services;
 
-import fr.univtln.pegliasco.tp.model.Rating;
-import fr.univtln.pegliasco.tp.model.RatingCache;
-import fr.univtln.pegliasco.tp.model.User;
+import fr.univtln.pegliasco.tp.model.*;
 import fr.univtln.pegliasco.tp.model.view.RatingId;
+import fr.univtln.pegliasco.tp.repository.AccountRepository;
+import fr.univtln.pegliasco.tp.repository.MovieRepository;
 import fr.univtln.pegliasco.tp.repository.RatingRepository;
+import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import jakarta.enterprise.context.ApplicationScoped;
 
@@ -16,9 +17,14 @@ import java.util.List;
 @ApplicationScoped
 public class RatingService {
     private final RatingRepository ratingRepository;
+    private final AccountRepository accountRepository;
+    private final MovieRepository movieRepository;
 
-    public RatingService(RatingRepository ratingRepository) {
+    @Inject
+    public RatingService(RatingRepository ratingRepository, AccountRepository accountRepository, MovieRepository movieRepository) {
         this.ratingRepository = ratingRepository;
+        this.accountRepository =  accountRepository;
+        this.movieRepository = movieRepository;
     }
 
     public static File generateCSV(List<RatingId> ratings) throws IOException {
@@ -63,8 +69,16 @@ public class RatingService {
     }
 
     //addRatingToCache
+    // Dans RatingService.java
+
     @Transactional
-    public void addRatingToCache(RatingCache rating) {
+    public void addRatingToCache(Float rate, Long accountId, Long movieId) {
+        RatingCache rating = new RatingCache();
+        rating.setRate(rate);
+        Account account = accountRepository.findById(accountId);
+        Movie movie = movieRepository.findById(movieId);
+        rating.setAccount(account);
+        rating.setMovie(movie);
         ratingRepository.addCache(rating);
     }
 

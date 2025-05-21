@@ -1,6 +1,7 @@
 package fr.univtln.pegliasco.tp.model;
 
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -16,9 +17,12 @@ public class RatingCache {
     @Column
     private Float rate;
 
-    @Column
-    private Long accountId;
+    @ManyToOne
+    @JoinColumn(name = "account_id", referencedColumnName = "id", insertable = false, updatable = false)
+    private Account account;
 
-    @Column
-    private Long movieId;
+    @ManyToOne
+    @JoinColumn(name = "movie_id", referencedColumnName = "id", insertable = false, updatable = false)
+    private Movie movie;
+
 }

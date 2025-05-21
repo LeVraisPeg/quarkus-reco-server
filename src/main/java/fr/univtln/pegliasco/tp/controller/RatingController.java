@@ -4,6 +4,7 @@ import fr.univtln.pegliasco.encryption.differential_privacy.MakeNoise;
 
 import fr.univtln.pegliasco.tp.model.Rating;
 import fr.univtln.pegliasco.tp.model.RatingCache;
+import fr.univtln.pegliasco.tp.model.User;
 import fr.univtln.pegliasco.tp.model.view.RatingId;
 import fr.univtln.pegliasco.tp.services.RatingService;
 
@@ -82,11 +83,15 @@ public class RatingController {
 
     // Ajouter une évaluation au cache
     @POST
-    @Path("/cache")
-    public Response addRatingToCache(RatingCache rating) {
-        ratingService.addRatingToCache(rating);
-        return Response.status(Response.Status.CREATED).entity(rating).build();
+    @Path("/cache/{rate}/{accountId}/{movieId}")
+    public Response addRatingToCache(
+            @PathParam("rate") Float rate,
+            @PathParam("accountId") Long accountId,
+            @PathParam("movieId") Long movieId) {
+        ratingService.addRatingToCache(rate, accountId, movieId);
+        return Response.status(Response.Status.CREATED).build();
     }
+
 
     // Supprimer une évaluation par son ID
     @DELETE
