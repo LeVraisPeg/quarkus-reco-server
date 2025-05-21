@@ -2,9 +2,11 @@ package fr.univtln.pegliasco.tp.controller;
 
 import fr.univtln.pegliasco.tp.model.Rating;
 import fr.univtln.pegliasco.tp.model.Tag;
+import fr.univtln.pegliasco.tp.model.nosql.MovieElastic;
 import fr.univtln.pegliasco.tp.services.MovieService;
 import fr.univtln.pegliasco.encryption.differential_privacy.MakeNoise;
 import fr.univtln.pegliasco.tp.model.Movie;
+import fr.univtln.pegliasco.tp.services.MovieElasticService;
 
 import jakarta.inject.Inject;
 import jakarta.ws.rs.*;
@@ -12,6 +14,7 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 
 import java.io.File;
+import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.List;
 import java.util.Locale;
@@ -23,6 +26,9 @@ import java.util.logging.Logger;
 public class MovieController {
     @Inject
     MovieService movieService;
+
+    @Inject
+    MovieElasticService movieElasticService;
 
     Logger logger = Logger.getLogger(MovieController.class.getName());
 
@@ -140,6 +146,13 @@ public class MovieController {
         } else {
             return Response.status(Response.Status.NOT_FOUND).build();
         }
+    }
+
+    @GET
+    @Path("/search")
+    @Produces(MediaType.APPLICATION_JSON)
+    public List<MovieElastic> search(@QueryParam("q") String query) throws IOException {
+        return movieElasticService.searchMovies(query);
     }
 
     // Récupérer les films par année

@@ -6,6 +6,8 @@ import io.quarkus.runtime.Startup;
 import jakarta.annotation.PostConstruct;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
+
+import java.io.InputStream;
 import java.util.logging.Logger;
 
 import java.io.File;
@@ -24,14 +26,18 @@ public class CsvImportStartup {
         try {
             logger.info("▶ Import CSV on startup...");
 
-            // Example file paths in /resources
-            String moviePath = getResourceFilePath("Data/movies_created.csv");
-            String ratingPath = getResourceFilePath("Data/ratings.csv");
-            String tagPath = getResourceFilePath("Data/tags.csv");
 
-            csvImporterService.importMoviesFromCsv(moviePath);
-            csvImporterService.importRatingsFromCsv(ratingPath);
-            csvImporterService.importTagsFromCsv(tagPath);
+            try (InputStream movieStream = getClass().getClassLoader().getResourceAsStream("Data/movies_created.csv")) {
+                csvImporterService.importMoviesFromCsv(movieStream);
+            }
+
+            try (InputStream ratingStream = getClass().getClassLoader().getResourceAsStream("Data/ratings.csv")) {
+                csvImporterService.importRatingsFromCsv(ratingStream);
+            }
+            try (InputStream tagStream = getClass().getClassLoader().getResourceAsStream("Data/tags.csv")) {
+                csvImporterService.importTagsFromCsv(tagStream);
+            }
+
             logger.info("✅ Import completed successfully.");
 
         } catch (Exception e) {

@@ -19,6 +19,7 @@ public class MovieRepository {
     @PersistenceContext
     EntityManager entityManager;
 
+
     public List<Movie> findAll() {
         return entityManager.createQuery("SELECT m FROM Movie m", Movie.class).getResultList();
     }

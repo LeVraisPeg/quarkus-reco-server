@@ -4,8 +4,10 @@ import fr.univtln.pegliasco.tp.model.Gender;
 import fr.univtln.pegliasco.tp.model.Movie;
 import fr.univtln.pegliasco.tp.model.Rating;
 import fr.univtln.pegliasco.tp.model.Tag;
-import fr.univtln.pegliasco.tp.model.view.RatingId;
+import fr.univtln.pegliasco.tp.model.nosql.MovieElastic;
+import fr.univtln.pegliasco.tp.model.nosql.MovieMapper;
 import fr.univtln.pegliasco.tp.repository.MovieRepository;
+import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import jakarta.enterprise.context.ApplicationScoped;
 
@@ -18,6 +20,11 @@ import java.util.Map;
 @ApplicationScoped
 public class MovieService {
     private final MovieRepository movieRepository;
+
+    @Inject
+    MovieElasticService movieElasticService;
+
+
 
     public MovieService(MovieRepository movieRepository) {
         this.movieRepository = movieRepository;
@@ -85,6 +92,12 @@ public class MovieService {
     @Transactional
     public void addMovie(Movie movie) {
         movieRepository.save(movie);
+        try {
+            MovieElastic movieElastic = MovieMapper.toElastic(movie);
+            movieElasticService.indexMovie(movieElastic);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     @Transactional
@@ -192,4 +205,7 @@ public class MovieService {
         }
     }
 
+    public List<MovieElastic> searchMovies(String keyword) throws IOException {
+        return movieElasticService.searchMovies(keyword);
+    }
 }
