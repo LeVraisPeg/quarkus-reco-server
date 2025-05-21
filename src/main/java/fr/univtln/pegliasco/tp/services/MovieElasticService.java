@@ -32,7 +32,7 @@ public class MovieElasticService {
     public void indexMovie(MovieElastic movieElastic) throws IOException {
         client.index(i -> i
                 .index(INDEX)
-                .id(movieElastic.getId())
+                .id(String.valueOf(movieElastic.getId()))
                 .document(movieElastic)
         );
     }
@@ -59,10 +59,10 @@ public class MovieElasticService {
 
 
     // Récupérer un film par id
-    public MovieElastic getMovieById(String id) throws IOException {
+    public MovieElastic getMovieById(Long id) throws IOException {
         GetResponse<MovieElastic> response = client.get(g -> g
                 .index(INDEX)
-                .id(id), MovieElastic.class);
+                .id(String.valueOf(id)), MovieElastic.class);
 
         if (response.found()) {
             return response.source();

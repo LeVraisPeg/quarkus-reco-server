@@ -80,17 +80,7 @@ public class MovieController {
         return Response.ok(movie).build();
     }
 
-    // Récupérer un film par son ID
-    @GET
-    @Path("/{id}")
-    public Response getMovieById(@PathParam("id") Long id) {
-        Movie movie = movieService.getMovieById(id);
-        if (movie != null) {
-            return Response.ok(movie).build();
-        } else {
-            return Response.status(Response.Status.NOT_FOUND).build();
-        }
-    }
+
 
     // Récupérer les notes d'un film par son ID
     @GET
@@ -153,6 +143,19 @@ public class MovieController {
     @Produces(MediaType.APPLICATION_JSON)
     public List<MovieElastic> search(@QueryParam("q") String query) throws IOException {
         return movieElasticService.searchMovies(query);
+    }
+
+
+    // Récupérer un film par son ID
+    @GET
+    @Path("/{id}")
+    public Response getMovieById(@PathParam("id") Long id) throws IOException {
+        MovieElastic movie = movieElasticService.getMovieById(id);
+        if (movie != null) {
+            return Response.ok(movie).build();
+        } else {
+            return Response.status(Response.Status.NOT_FOUND).build();
+        }
     }
 
     // Récupérer les films par année
