@@ -1,11 +1,11 @@
-FROM eclipse-temurin:21-jdk AS build
+FROM maven:3.9.7-eclipse-temurin-21 AS build
 
 COPY --chown=185 mvnw .
 COPY --chown=185 .mvn .mvn
 COPY --chown=185 pom.xml .
 COPY --chown=185 src src
 
-RUN ./mvnw clean package -DskipTests
+RUN mvn clean package -DskipTests
 
 FROM registry.access.redhat.com/ubi9/openjdk-21:1.21
 
