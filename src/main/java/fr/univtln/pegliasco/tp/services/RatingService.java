@@ -50,6 +50,11 @@ public class RatingService {
         return ratingRepository.findCacheById(id);
     }
 
+    //getRatingCacheByAccountId
+    public List<RatingCache> getRatingCacheByAccountId(Long accountId) {
+        return ratingRepository.findCacheByAccountId(accountId);
+    }
+
     @Transactional
     public List<Rating> getRatingsPaginated(int page, int size) {
         List<Rating> ratings = ratingRepository.findPaginated(page, size);

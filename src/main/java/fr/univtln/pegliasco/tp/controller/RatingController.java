@@ -92,6 +92,18 @@ public class RatingController {
         return Response.status(Response.Status.CREATED).build();
     }
 
+    //Recupérer une évaluation en cache par son ID accountId
+    @GET
+    @Path("/cache/{accountId}")
+    public Response getRatingCacheByAccountId(@PathParam("accountId") Long accountId) {
+        List<RatingCache> ratings = ratingService.getRatingCacheByAccountId(accountId);
+        if (ratings != null && !ratings.isEmpty()) {
+            return Response.ok(ratings).build();
+        } else {
+            return Response.status(Response.Status.NOT_FOUND).build();
+        }
+    }
+
 
     // Supprimer une évaluation par son ID
     @DELETE
