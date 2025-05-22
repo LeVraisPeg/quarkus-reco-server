@@ -16,8 +16,6 @@ public class RatingRepository {
     @PersistenceContext
     EntityManager entityManager;
 
-
-
     public List<Rating> findPaginated(int page, int size) {
         return entityManager.createQuery("SELECT r FROM Rating r", Rating.class)
                 .setFirstResult(page * size)
@@ -93,4 +91,19 @@ public class RatingRepository {
                 "SELECT new RatingId(r.account.id, r.movie.id,r.rate) FROM Rating r",
                 RatingId.class).getResultList();
     }
+
+    public boolean ratingExistsForUser(Long id) {
+        return entityManager.createQuery("SELECT COUNT(r) FROM Rating r WHERE r.id = :id", Long.class)
+                .setParameter("id", id)
+                .getSingleResult() > 0;
+    }
+
+    public double getAverageRating(Long movieId) {
+        Double avg = entityManager
+                .createQuery("SELECT AVG(r.rate) FROM Rating r WHERE r.movie.id = :movieId", Double.class)
+                .setParameter("movieId", movieId)
+                .getSingleResult();
+        return avg != null ? avg : 0.0;
+    }
+
 }

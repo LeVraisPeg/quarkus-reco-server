@@ -4,8 +4,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.OptionalInt;
 import java.util.Random;
+import java.util.function.Function;
+import java.util.function.UnaryOperator;
 
-import fr.univtln.pegliasco.tp.movies_to_recommend.RecommendedMovie;
+import fr.univtln.pegliasco.tp.model.Movie;
+import fr.univtln.pegliasco.tp.model.Rating;
 
 /**
  * The {@code ExponentialMechanism} class implements the Exponential Mechanism
@@ -20,27 +23,25 @@ import fr.univtln.pegliasco.tp.movies_to_recommend.RecommendedMovie;
  */
 public class ExponentialMechanism {
 
-    private ExponentialMechanism() {
+    /**
+     * Utility function used by the exponential mechanism.
+     *
+     * This function takes as input a score (for example, the average rating of a
+     * movie)
+     * and returns a utility value as a Double. It allows customization of how the
+     * quality
+     * of an item is evaluated within the exponential mechanism.
+     *
+     * Example usage: x -> Math.abs(x - 2.5)
+     */
+    Function<Movie, Double> utilityFunction;
+
+    public ExponentialMechanism(Function<Movie, Double> utilityFunction) {
+        this.utilityFunction = utilityFunction;
     }
 
-    private static final int MAX_RATING = 5;
     private static final double SENSITIVITY = 0.5;
     private static final Random randomGenerator = new Random();
-
-    /**
-     * Computes the utility of a given rating.
-     * 
-     * <p>
-     * The utility is calculated as the negative absolute difference between the
-     * rating and the maximum possible rating. Higher ratings have higher utility.
-     * </p>
-     *
-     * @param rating the rating to evaluate
-     * @return the utility value of the rating
-     */
-    private static double computeUtility(double rating) {
-        return -Math.abs(rating - MAX_RATING);
-    }
 
     /**
      * Generates a cumulative probability distribution based on the predicted
@@ -59,7 +60,7 @@ public class ExponentialMechanism {
      * @throws IllegalArgumentException if the input list is null, empty, or if the
      *                                  sum of generated values is zero
      */
-    private static List<Double> generateCumulativeProbabilities(List<RecommendedMovie> recommendedMovies,
+    private List<Double> generateCumulativeProbabilities(List<Movie> recommendedMovies,
             double epsilon) {
         if (recommendedMovies == null || recommendedMovies.isEmpty()) {
             throw new IllegalArgumentException("The predicted ratings list cannot be null or empty.");
@@ -69,8 +70,8 @@ public class ExponentialMechanism {
         double sumOfValues = 0;
 
         // Calculate exponential values and their sum
-        for (RecommendedMovie recommendation : recommendedMovies) {
-            double value = Math.exp(epsilon * computeUtility(recommendation.getRate()) / (2 * SENSITIVITY));
+        for (Movie movie : recommendedMovies) {
+            double value = Math.exp(-epsilon * utilityFunction.apply(movie) / (2 * SENSITIVITY));
             sumOfValues += value;
             cumulativeProbabilities.add(value);
         }
@@ -101,7 +102,7 @@ public class ExponentialMechanism {
      * @return an {@code OptionalInt} containing the index if found, or empty if
      *         not found
      */
-    private static OptionalInt findIndexWithRandomValue(List<Double> cumulativeProbabilities, double randomValue) {
+    private OptionalInt findIndexWithRandomValue(List<Double> cumulativeProbabilities, double randomValue) {
         for (int index = 0; index < cumulativeProbabilities.size(); index++) {
             if (randomValue < cumulativeProbabilities.get(index)) {
                 return OptionalInt.of(index);
@@ -128,7 +129,7 @@ public class ExponentialMechanism {
      * @throws IllegalStateException    if no movie is found for the given random
      *                                  value
      */
-    public static RecommendedMovie selectRandomMovie(List<RecommendedMovie> recommendedMovies, double epsilon) {
+    public Movie selectRandomMovie(List<Movie> recommendedMovies, double epsilon) {
         if (recommendedMovies == null || recommendedMovies.isEmpty()) {
             throw new IllegalArgumentException(
                     "The recommended movies list cannot be null or empty, and the number of movies must be positive and less than or equal to the size of the list.");
