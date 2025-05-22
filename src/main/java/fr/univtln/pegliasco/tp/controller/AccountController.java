@@ -1,9 +1,14 @@
 package fr.univtln.pegliasco.tp.controller;
 
+import fr.univtln.pegliasco.tp.model.Movie;
 import fr.univtln.pegliasco.tp.model.Rating;
+import fr.univtln.pegliasco.tp.model.RatingCache;
 import fr.univtln.pegliasco.tp.services.AccountService;
 import fr.univtln.pegliasco.tp.model.Account;
 
+import fr.univtln.pegliasco.tp.services.MovieService;
+import fr.univtln.pegliasco.tp.services.RatingCacheService;
+import fr.univtln.pegliasco.tp.services.RatingService;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
@@ -16,6 +21,12 @@ import java.util.List;
 public class AccountController {
     @Inject
     AccountService accountService;
+    @Inject
+    MovieService movieService;
+    @Inject
+    RatingCacheService ratingCacheService;
+    @Inject
+    RatingService ratingService;
 
     // Récupérer tous les comptes
     @GET
@@ -114,4 +125,52 @@ public class AccountController {
         }
         return Response.ok(ratings).build();
     }
+
+    //Noter un film
+    @POST
+    @Path("/{accountId}/movie/{movieId}/{rate}/rating")
+    public Response rateMovie(@PathParam("accountId") Long accountId,
+            @PathParam("movieId") Long movieId,@PathParam("rate") Float rate) {
+        Account account = accountService.getAccountById(accountId);
+        if (account == null) {
+            return Response.status(Response.Status.NOT_FOUND).build();
+        }
+        Movie movie = movieService.getMovieById(movieId);
+        RatingCache ratingcache = new RatingCache();
+        Rating rating = new Rating();
+        rating.setAccount(account);
+        ratingcache.setAccount(account);
+
+        rating.setMovie(movie);
+        ratingcache.setMovie(movie);
+
+        rating.setRate(rate);
+        ratingcache.setRate(rate);
+
+        ratingCacheService.addRatingToCache(ratingcache);
+        ratingService.addRating(rating);
+        return Response.status(Response.Status.CREATED).entity(rating).build();
+    }
+
+    //Passez tout les ratingscache au rating du compte
+    @POST
+    @Path("ratings/{accountId}")
+    public Response passAllRatingsCacheToRating(@PathParam("accountId") Long accountId) {
+        Account account = accountService.getAccountById(accountId);
+        if (account == null) {
+            return Response.status(Response.Status.NOT_FOUND).build();
+        }
+        List<RatingCache> caches = ratingCacheService.getRatingCacheByAccountId(accountId);
+        for (RatingCache cache : caches) {
+            Rating rating = new Rating();
+            rating.setAccount(account);
+            rating.setMovie(cache.getMovie());
+            rating.setRate(cache.getRate());
+            account.getRatings().add(rating);
+            ratingCacheService.deleteRatingFromCache(cache.getId());
+        }
+        accountService.updateAccount(account);
+        return Response.ok().build();
+    }
+
 }

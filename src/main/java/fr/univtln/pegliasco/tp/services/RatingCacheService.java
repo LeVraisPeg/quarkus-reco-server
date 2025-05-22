@@ -3,6 +3,7 @@ package fr.univtln.pegliasco.tp.services;
 import fr.univtln.pegliasco.tp.model.RatingCache;
 import fr.univtln.pegliasco.tp.repository.RatingCacheRepository;
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.transaction.Transactional;
 
 import java.util.List;
 
@@ -26,12 +27,13 @@ public class RatingCacheService {
         return ratingCacheRepository.findPaginated(page, size);
     }
 
-
+    @Transactional
     public void addRatingToCache(RatingCache ratingCache) {
         ratingCacheRepository.add(ratingCache);
     }
 
 
+    @Transactional
     public void deleteRatingFromCache(Long id) {
         RatingCache ratingCache = ratingCacheRepository.findById(id);
         if (ratingCache != null) {

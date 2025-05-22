@@ -46,26 +46,12 @@ public class RatingService {
     }
 
 
-    public RatingCache getRatingCacheById(Long id) {
-        return ratingRepository.findCacheById(id);
-    }
-
-    //getRatingCacheByAccountId
-    public List<RatingCache> getRatingCacheByAccountId(Long accountId) {
-        return ratingRepository.findCacheByAccountId(accountId);
-    }
-
     @Transactional
     public List<Rating> getRatingsPaginated(int page, int size) {
         List<Rating> ratings = ratingRepository.findPaginated(page, size);
         return ratings;
     }
 
-    @Transactional
-    public List<RatingCache> getRatingsPaginatedFromCache(int page, int size) {
-        List<RatingCache> ratings = ratingRepository.findPaginatedFromCache(page, size);
-        return ratings;
-    }
 
     //addRating
     @Transactional
@@ -73,25 +59,9 @@ public class RatingService {
         ratingRepository.add(rating);
     }
 
-    //addRatingToCache
-    // Dans RatingService.java
 
-    @Transactional
-    public void addRatingToCache(Float rate, Long accountId, Long movieId) {
-        RatingCache rating = new RatingCache();
-        rating.setRate(rate);
-        Account account = accountRepository.findById(accountId);
-        Movie movie = movieRepository.findById(movieId);
-        rating.setAccount(account);
-        rating.setMovie(movie);
-        ratingRepository.addCache(rating);
-    }
 
-    //deleteRatingToCache
-    @Transactional
-    public void deleteRatingtoCache(Long id) {
-        ratingRepository.deleteCache(id);
-    }
+
 
     @Transactional
     public void deleteRating(Long id) {
@@ -113,16 +83,6 @@ public class RatingService {
         }
     }
 
-    //updateRatingToCache
-    @Transactional
-    public void updateRatingToCache(Long id, RatingCache rating) {
-        RatingCache existingRatingCache = ratingRepository.findCacheById(id);
-        if (existingRatingCache != null) {
-            existingRatingCache.setRate(rating.getRate());
-            ratingRepository.updateCache(existingRatingCache);
-        }
-    }
-
     // Récupérer la note d'un utilisateur pour un film par leurs IDs
     @Transactional
     public List<Rating> getRatingByAccountIdAndMovieId(Long userId, Long movieId) {
@@ -130,15 +90,6 @@ public class RatingService {
         return ratings.isEmpty() ? List.of() : ratings;
     }
 
-    // save or update
-    @Transactional
-    public void saveOrUpdate(Rating rating) {
-        if (rating.getId() == null) {
-            ratingRepository.add(rating);
-        } else {
-            ratingRepository.update(rating);
-        }
-    }
 
     // get rating by account id
     @Transactional

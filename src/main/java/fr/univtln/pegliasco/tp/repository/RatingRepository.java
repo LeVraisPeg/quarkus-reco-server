@@ -25,19 +25,9 @@ public class RatingRepository {
                 .getResultList();
     }
 
-    public List<RatingCache> findPaginatedFromCache(int page, int size) {
-        return entityManager.createQuery("SELECT r FROM RatingCache r", RatingCache.class)
-                .setFirstResult(page * size)
-                .setMaxResults(size)
-                .getResultList();
-    }
 
     public Rating findById(Long id) {
         return entityManager.find(Rating.class, id);
-    }
-
-    public RatingCache findCacheById(Long id) {
-        return entityManager.find(RatingCache.class, id);
     }
 
     //findCacheByAccountId
@@ -61,24 +51,12 @@ public class RatingRepository {
         entityManager.merge(rating);
     }
 
-    public void updateCache(RatingCache rating) {
-        entityManager.merge(rating);
-    }
+
 
     public void add(Rating rating) {
         entityManager.persist(rating);
     }
 
-    public void addCache(RatingCache rating) {
-        entityManager.persist(rating);
-    }
-
-    public void deleteCache(Long id) {
-        RatingCache rating = entityManager.find(RatingCache.class, id);
-        if (rating != null) {
-            entityManager.remove(rating);
-        }
-    }
 
     public void delete(Long id) {
         Rating rating = findById(id);

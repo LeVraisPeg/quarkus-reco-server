@@ -2,6 +2,7 @@ package fr.univtln.pegliasco.tp.services;
 
 import fr.univtln.pegliasco.tp.model.Account;
 import fr.univtln.pegliasco.tp.model.Rating;
+import fr.univtln.pegliasco.tp.model.RatingCache;
 import fr.univtln.pegliasco.tp.repository.AccountRepository;
 import jakarta.transaction.Transactional;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -109,5 +110,6 @@ public class AccountService {
         }
         return null;
     }
+
 
 }
