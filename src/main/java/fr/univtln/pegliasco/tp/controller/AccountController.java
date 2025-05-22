@@ -1,5 +1,6 @@
 package fr.univtln.pegliasco.tp.controller;
 
+import fr.univtln.pegliasco.tp.model.Rating;
 import fr.univtln.pegliasco.tp.services.AccountService;
 import fr.univtln.pegliasco.tp.model.Account;
 
@@ -101,5 +102,16 @@ public class AccountController {
     public Response getAccountByRole(@PathParam("role") String role) {
         List<Account> accounts = accountService.getAccountByRole(role);
         return Response.ok(accounts).build();
+    }
+
+    //recuperer les ratings d'un account
+    @GET
+    @Path("/ratings/{id}")
+    public Response getRatingsByAccountId(@PathParam("id") Long id) {
+        List<Rating> ratings = accountService.getRatingsByAccountId(id);
+        if (ratings == null || ratings.isEmpty()) {
+            return Response.status(Response.Status.NOT_FOUND).build();
+        }
+        return Response.ok(ratings).build();
     }
 }

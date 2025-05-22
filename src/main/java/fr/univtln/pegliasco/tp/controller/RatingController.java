@@ -33,13 +33,7 @@ public class RatingController {
         return MakeNoise.applyLapplaceNoise(pagedRatings);
     }
 
-    // Récupérer toutes les évaluations en cache
-    @GET
-    @Path("/cache")
-    public List<RatingCache> getAllRatingsFromCache(@QueryParam("page") @DefaultValue("0") int page,
-            @QueryParam("size") @DefaultValue("1000") int size) {
-        return ratingService.getRatingsPaginatedFromCache(page, size);
-    }
+
 
     @GET
     @Path("/fileNoise")
@@ -81,16 +75,7 @@ public class RatingController {
         return Response.status(Response.Status.CREATED).entity(rating).build();
     }
 
-    // Ajouter une évaluation au cache
-    @POST
-    @Path("/cache/{rate}/{accountId}/{movieId}")
-    public Response addRatingToCache(
-            @PathParam("rate") Float rate,
-            @PathParam("accountId") Long accountId,
-            @PathParam("movieId") Long movieId) {
-        ratingService.addRatingToCache(rate, accountId, movieId);
-        return Response.status(Response.Status.CREATED).build();
-    }
+
 
 
     // Supprimer une évaluation par son ID
@@ -101,13 +86,6 @@ public class RatingController {
         return Response.noContent().build();
     }
 
-    // Supprimer une évalution du cache par son ID
-    @DELETE
-    @Path("/cache/{id}")
-    public Response deleteRatingFromCache(@PathParam("id") Long id) {
-        ratingService.deleteRatingtoCache(id);
-        return Response.noContent().build();
-    }
 
     // Mettre à jour une évaluation par son ID
     @PUT
@@ -120,16 +98,7 @@ public class RatingController {
         return Response.ok(rating).build();
     }
 
-    // Mettre à jour une évaluation dans le cache par son ID
-    @PUT
-    @Path("/cache/{id}/{value}")
-    public Response updateRatingInCache(@PathParam("id") Long id,
-            @PathParam("value") Float rate, RatingCache rating) {
-        rating.setId(id);
-        rating.setRate(rate);
-        ratingService.updateRatingToCache(id, rating);
-        return Response.ok(rating).build();
-    }
+
 
     // Récupérer une évaluation par son ID
     @GET
@@ -143,17 +112,6 @@ public class RatingController {
         }
     }
 
-    // Récupérer une évaluation en cache par son ID
-    @GET
-    @Path("/cache/{id}")
-    public Response getRatingCacheById(@PathParam("id") Long id) {
-        RatingCache rating = ratingService.getRatingCacheById(id);
-        if (rating != null) {
-            return Response.ok(rating).build();
-        } else {
-            return Response.status(Response.Status.NOT_FOUND).build();
-        }
-    }
 
     // findByAccountId
     @GET

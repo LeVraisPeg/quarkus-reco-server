@@ -38,6 +38,14 @@ public class RatingRepository {
         return entityManager.find(RatingCache.class, id);
     }
 
+    //findCacheByAccountId
+    public List<RatingCache> findCacheByAccountId(Long accountId) {
+        String query = "SELECT r FROM RatingCache r WHERE r.account.id = :accountId";
+        return entityManager.createQuery(query, RatingCache.class)
+                .setParameter("accountId", accountId)
+                .getResultList();
+    }
+
     // findByAccountIdAndMovieId
     public List<Rating> findByAccountIdAndMovieId(Long accountId, Long movieId) {
         String query = "SELECT r FROM Rating r WHERE r.account.id = :accountId AND r.movie.id = :movieId";
