@@ -102,7 +102,7 @@ public class MakeNoise {
         for (int i = 0; i < ratings.size(); i++) {
             RatingId r = ratings.get(i);
             double noise = generateLaplaceNoise(1, 0.5);
-            ratings.set(i, new RatingId(r.userId(), r.movieId(), r.rating() + (float) noise));
+            ratings.set(i, new RatingId(r.userId(), r.movieId(), r.rating() + (float) noise, r.timestamp()));
         }
         return ratings;
     }

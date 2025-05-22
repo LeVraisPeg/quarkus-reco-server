@@ -81,6 +81,7 @@
                         Long userId = Long.parseLong(tokens[0]);
                         Long movieId = Long.parseLong(tokens[1]);
                         float ratingValue = Float.parseFloat(tokens[2]);
+                        Long timestamp = Long.parseLong(tokens[3]);
 
                         Account account = accountCache.computeIfAbsent(userId, id -> accountService.findOrCreateById(id));
                         if (account == null) {
@@ -94,6 +95,7 @@
                         rating.setRate(ratingValue);
                         rating.setAccount(account);
                         rating.setMovie(movie);
+                        rating.setTimestamp(timestamp);
                         currentBatch.add(rating);
 
                         if (currentBatch.size() == batchSize) {

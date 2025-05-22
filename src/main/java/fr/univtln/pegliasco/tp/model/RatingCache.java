@@ -25,4 +25,7 @@ public class RatingCache {
     @JsonIgnore
     private Movie movie;
 
+    @Column
+    private Long timestamp;
+
 }

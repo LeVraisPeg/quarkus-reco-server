@@ -34,7 +34,8 @@ public class RatingService {
             for (RatingId p : ratings) {
                 writer.append(String.valueOf(p.userId())).append(",")
                         .append(String.valueOf(p.movieId())).append(",")
-                        .append(String.valueOf(p.rating())).append("\n");
+                        .append(String.valueOf(p.rating())).append(",")
+                        .append(String.valueOf(p.timestamp())).append("\n");
             }
         }
         return tempFile;
@@ -97,4 +98,13 @@ public class RatingService {
         return ratingRepository.findByAccountId(accountId);
     }
 
+    //getMovieByRatingId
+    @Transactional
+    public Movie getMovieByRatingId(Long ratingId) {
+        Rating rating = ratingRepository.findById(ratingId);
+        if (rating != null) {
+            return rating.getMovie();
+        }
+        return null;
+    }
 }

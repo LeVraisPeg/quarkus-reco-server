@@ -1,6 +1,7 @@
 package fr.univtln.pegliasco.tp.repository;
 
 import fr.univtln.pegliasco.encryption.differential_privacy.MakeNoise;
+import fr.univtln.pegliasco.tp.model.Movie;
 import fr.univtln.pegliasco.tp.model.Rating;
 import fr.univtln.pegliasco.tp.model.RatingCache;
 import fr.univtln.pegliasco.tp.model.view.RatingId;
@@ -91,5 +92,7 @@ public class RatingRepository {
                 .getSingleResult();
         return avg != null ? avg : 0.0;
     }
+
+
 
 }

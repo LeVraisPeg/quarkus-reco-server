@@ -2,6 +2,7 @@ package fr.univtln.pegliasco.tp.controller;
 
 import fr.univtln.pegliasco.encryption.differential_privacy.MakeNoise;
 
+import fr.univtln.pegliasco.tp.model.Movie;
 import fr.univtln.pegliasco.tp.model.Rating;
 import fr.univtln.pegliasco.tp.model.RatingCache;
 import fr.univtln.pegliasco.tp.model.User;
@@ -28,11 +29,10 @@ public class RatingController {
     // Récupérer toutes les évaluations
     @GET
     public List<Rating> getAllRatings(@QueryParam("page") @DefaultValue("0") int page,
-            @QueryParam("size") @DefaultValue("1000") int size) {
+                                      @QueryParam("size") @DefaultValue("1000") int size) {
         List<Rating> pagedRatings = ratingService.getRatingsPaginated(page, size);
         return MakeNoise.applyLapplaceNoise(pagedRatings);
     }
-
 
 
     @GET
@@ -76,8 +76,6 @@ public class RatingController {
     }
 
 
-
-
     // Supprimer une évaluation par son ID
     @DELETE
     @Path("/{id}")
@@ -91,13 +89,12 @@ public class RatingController {
     @PUT
     @Path("/{id}/{value}")
     public Response updateRating(@PathParam("id") Long id,
-            @PathParam("value") Float rate, Rating rating) {
+                                 @PathParam("value") Float rate, Rating rating) {
         rating.setId(id);
         rating.setRate(rate);
         ratingService.updateRating(id, rating);
         return Response.ok(rating).build();
     }
-
 
 
     // Récupérer une évaluation par son ID
@@ -124,12 +121,24 @@ public class RatingController {
     @GET
     @Path("/account/{accountId}/movie/{movieId}")
     public Response getRatingByAccountIdAndMovieId(@PathParam("accountId") Long accountId,
-            @PathParam("movieId") Long movieId) {
+                                                   @PathParam("movieId") Long movieId) {
         List<Rating> ratings = ratingService.getRatingByAccountIdAndMovieId(accountId, movieId);
         if (!ratings.isEmpty()) {
             return Response.ok(MakeNoise.applyLapplaceNoise(ratings)).build();
         } else {
             return Response.ok(List.of()).build(); // Renvoie une liste vide
+        }
+    }
+
+    // Récupérer le movie avec un rating id
+    @GET
+    @Path("/ratingId/{ratingId}")
+    public Response getMovieByRatingId(@PathParam("ratingId") Long ratingId) {
+        Movie movie = ratingService.getMovieByRatingId(ratingId);
+        if (movie != null) {
+            return Response.ok(movie).build();
+        } else {
+            return Response.status(Response.Status.NOT_FOUND).build();
         }
     }
 }

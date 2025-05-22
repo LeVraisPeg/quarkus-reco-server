@@ -23,4 +23,7 @@ public class Rating {
     @ManyToOne
     @JsonIgnore
     private Movie movie;
+
+    @Column
+    private Long timestamp;
 }
