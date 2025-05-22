@@ -2,7 +2,7 @@ package fr.univtln.pegliasco.tp.controller;
 
 import fr.univtln.pegliasco.tp.model.Rating;
 import fr.univtln.pegliasco.tp.model.Tag;
-import fr.univtln.pegliasco.tp.model.nosql.MovieElastic;
+import fr.univtln.pegliasco.tp.model.nosql.Elastic.MovieElastic;
 import fr.univtln.pegliasco.tp.services.MovieService;
 import fr.univtln.pegliasco.encryption.differential_privacy.MakeNoise;
 import fr.univtln.pegliasco.tp.model.Movie;

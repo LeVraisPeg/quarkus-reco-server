@@ -1,6 +1,7 @@
-package fr.univtln.pegliasco.tp.model.nosql;
+package fr.univtln.pegliasco.tp.model.nosql.Mapper;
 
 import fr.univtln.pegliasco.tp.model.Movie;
+import fr.univtln.pegliasco.tp.model.nosql.Elastic.MovieElastic;
 
 import java.time.ZoneId;
 import java.util.List;

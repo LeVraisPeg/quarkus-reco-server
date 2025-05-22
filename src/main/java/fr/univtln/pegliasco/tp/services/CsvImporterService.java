@@ -4,8 +4,10 @@
     import com.opencsv.CSVReaderBuilder;
     import com.opencsv.exceptions.CsvValidationException;
     import fr.univtln.pegliasco.tp.model.*;
-    import fr.univtln.pegliasco.tp.model.nosql.MovieElastic;
-    import fr.univtln.pegliasco.tp.model.nosql.MovieMapper;
+    import fr.univtln.pegliasco.tp.model.nosql.Elastic.MovieElastic;
+    import fr.univtln.pegliasco.tp.model.nosql.Elastic.RatingElastic;
+    import fr.univtln.pegliasco.tp.model.nosql.Mapper.MovieMapper;
+    import fr.univtln.pegliasco.tp.model.nosql.Mapper.RatingMapper;
     import jakarta.enterprise.context.ApplicationScoped;
     import jakarta.inject.Inject;
     import jakarta.persistence.EntityManager;
@@ -42,6 +44,8 @@
 
         @Inject
         MovieElasticService movieElasticService;
+        @Inject
+        RatingElasticService ratingElasticService;
 
         private static final Logger logger = Logger.getLogger(CsvImporterService.class.getName());
         @Inject
@@ -126,6 +130,14 @@
                 for (int i = 0; i < ratings.size(); i++) {
                     Rating r = ratings.get(i);
                     em.persist(r);
+
+                    // Indexation dans Elasticsearch
+                    try {
+                        RatingElastic ratingElastic = RatingMapper.toElastic(r);
+                        ratingElasticService.indexRating(ratingElastic);
+                    } catch (Exception e) {
+                        logger.warnf("Erreur d'indexation Elasticsearch pour rating id=%d : %s", r.getId(), e.getMessage());
+                    }
 
                     if (i % 1000 == 0) {
                         em.flush();
