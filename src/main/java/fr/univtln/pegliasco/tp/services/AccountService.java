@@ -1,6 +1,7 @@
 package fr.univtln.pegliasco.tp.services;
 
 import fr.univtln.pegliasco.tp.model.Account;
+import fr.univtln.pegliasco.tp.model.Rating;
 import fr.univtln.pegliasco.tp.repository.AccountRepository;
 import jakarta.transaction.Transactional;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -100,5 +101,13 @@ public class AccountService {
         return accountRepository.findById(id);
     }
 
+
+    public List<Rating> getRatingsByAccountId(Long id) {
+        Account account = accountRepository.findById(id);
+        if (account != null) {
+            return account.getRatings();
+        }
+        return null;
+    }
 
 }

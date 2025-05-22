@@ -1,8 +1,11 @@
 package fr.univtln.pegliasco.tp.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+
+import java.util.List;
 
 @Getter
 @Setter
@@ -27,6 +30,14 @@ public class Account {
     @Enumerated(EnumType.STRING)
     @Column
     public Role role;
+
+    @OneToMany(mappedBy = "account",cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
+    @JsonIgnore
+    private List<Rating> ratings;
+
+    @OneToMany(mappedBy = "account",cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
+    @JsonIgnore
+    private List<RatingCache> ratingscache;
 
     public enum Role {
         USER,

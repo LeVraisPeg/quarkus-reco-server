@@ -18,11 +18,11 @@ public class RatingCache {
     private Float rate;
 
     @ManyToOne
-    @JoinColumn(name = "account_id", referencedColumnName = "id", insertable = false, updatable = false)
+    @JsonIgnore
     private Account account;
 
     @ManyToOne
-    @JoinColumn(name = "movie_id", referencedColumnName = "id", insertable = false, updatable = false)
+    @JsonIgnore
     private Movie movie;
 
 }
