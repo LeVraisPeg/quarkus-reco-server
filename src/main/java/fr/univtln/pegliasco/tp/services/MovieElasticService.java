@@ -4,7 +4,6 @@ package fr.univtln.pegliasco.tp.services;
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
 import co.elastic.clients.elasticsearch.core.GetResponse;
 
-import fr.univtln.pegliasco.tp.model.Movie;
 import fr.univtln.pegliasco.tp.model.nosql.MovieElastic;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;

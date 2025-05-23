@@ -4,8 +4,6 @@ import fr.univtln.pegliasco.encryption.differential_privacy.MakeNoise;
 
 import fr.univtln.pegliasco.tp.model.Movie;
 import fr.univtln.pegliasco.tp.model.Rating;
-import fr.univtln.pegliasco.tp.model.RatingCache;
-import fr.univtln.pegliasco.tp.model.User;
 import fr.univtln.pegliasco.tp.model.view.RatingId;
 import fr.univtln.pegliasco.tp.services.RatingService;
 

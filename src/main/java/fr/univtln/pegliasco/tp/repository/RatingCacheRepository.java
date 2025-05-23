@@ -21,7 +21,12 @@ public class RatingCacheRepository {
     }
 
     public void delete(RatingCache ratingCache) {
-        entityManager.remove(entityManager.contains(ratingCache) ? ratingCache : entityManager.merge(ratingCache));
+        if (entityManager.contains(ratingCache)) {
+            entityManager.remove(ratingCache);
+            entityManager.flush();
+        } else {
+            entityManager.remove(entityManager.merge(ratingCache));
+        }
     }
 
     public RatingCache findById(Long id) {
