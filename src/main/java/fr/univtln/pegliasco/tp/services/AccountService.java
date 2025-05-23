@@ -2,13 +2,12 @@ package fr.univtln.pegliasco.tp.services;
 
 import fr.univtln.pegliasco.tp.model.Account;
 import fr.univtln.pegliasco.tp.model.Rating;
-import fr.univtln.pegliasco.tp.model.RatingCache;
 import fr.univtln.pegliasco.tp.repository.AccountRepository;
 import jakarta.transaction.Transactional;
 import jakarta.enterprise.context.ApplicationScoped;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Logger;
+
 import com.github.javafaker.Faker;
 
 
@@ -68,26 +67,34 @@ public class AccountService {
     }
 
     //find or create account by id
+
     @Transactional
     public Account findOrCreateById(Long id) {
         Account account = accountRepository.findById(id);
         if (account == null) {
             Faker faker = new Faker();
-            String email;
-            do {
+            int maxTries = 10;
+            for (int i = 0; i < maxTries; i++) {
                 String nom = faker.name().lastName();
                 String prenom = faker.name().firstName();
-                email = prenom.toLowerCase() + "." + nom.toLowerCase() + "@example.com";
-            } while (accountRepository.findByEmail(email) != null);
-
-            account = new Account();
-            account.setId(id);
-            account.setNom(faker.name().lastName());
-            account.setPrenom(faker.name().firstName());
-            account.setEmail(email);
-            account.setPassword(faker.internet().password(8, 12, true, true));
-            account.setRole(Account.Role.USER);
-            accountRepository.persist(account);
+                int randomNum = (int) (Math.random() * 100_000);
+                String uniqueNom = nom + "_" + prenom + "_" + randomNum;
+                String uniqueEmail = prenom.toLowerCase() + "." + nom.toLowerCase() + randomNum + "@example.com";
+                account = new Account();
+                account.setId(id);
+                account.setNom(uniqueNom);
+                account.setPrenom(prenom);
+                account.setEmail(uniqueEmail);
+                account.setPassword(faker.internet().password(8, 12, true, true));
+                account.setRole(Account.Role.USER);
+                try {
+                    accountRepository.persist(account);
+                    return account;
+                } catch (Exception e) {
+                    // Collision d’unicité, on réessaie
+                }
+            }
+            throw new RuntimeException("Impossible de générer un nom/email unique après " + maxTries + " essais");
         }
         return account;
     }

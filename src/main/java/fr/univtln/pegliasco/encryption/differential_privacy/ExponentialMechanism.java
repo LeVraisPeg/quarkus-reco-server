@@ -5,10 +5,8 @@ import java.util.List;
 import java.util.OptionalInt;
 import java.util.Random;
 import java.util.function.Function;
-import java.util.function.UnaryOperator;
 
 import fr.univtln.pegliasco.tp.model.Movie;
-import fr.univtln.pegliasco.tp.model.Rating;
 
 /**
  * The {@code ExponentialMechanism} class implements the Exponential Mechanism

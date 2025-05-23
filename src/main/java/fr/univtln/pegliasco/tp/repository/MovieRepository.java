@@ -3,7 +3,6 @@ package fr.univtln.pegliasco.tp.repository;
 import fr.univtln.pegliasco.tp.model.Gender;
 import fr.univtln.pegliasco.tp.model.Movie;
 
-import fr.univtln.pegliasco.tp.model.view.RatingId;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;

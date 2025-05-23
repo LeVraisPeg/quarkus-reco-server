@@ -15,10 +15,13 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import java.util.List;
 
+import java.util.logging.Logger;
+
 @Path("/account")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public class AccountController {
+    private static final Logger LOGGER = Logger.getLogger(AccountController.class.getName());
     @Inject
     AccountService accountService;
     @Inject
@@ -57,18 +60,18 @@ public class AccountController {
     @Path("/{id}/{nom}/{prenom}/{email}/{password}/{Role}")
     public Response updateAccount(@PathParam("id") Long id, @PathParam("nom") String nom,
             @PathParam("prenom") String prenom, @PathParam("email") String email,
-            @PathParam("password") String password, Account account) {
+            @PathParam("password") String password) {
         Account existingAccount = accountService.getAccountById(id);
         if (existingAccount == null) {
             return Response.status(Response.Status.NOT_FOUND).build();
         }
-        account.setId(id);
-        account.setNom(nom);
-        account.setPrenom(prenom);
-        account.setEmail(email);
-        account.setPassword(password);
-        accountService.updateAccount(account);
-        return Response.ok(account).build();
+        existingAccount.setId(id);
+        existingAccount.setNom(nom);
+        existingAccount.setPrenom(prenom);
+        existingAccount.setEmail(email);
+        existingAccount.setPassword(password);
+        accountService.updateAccount(existingAccount);
+        return Response.ok(existingAccount).build();
     }
 
     // Supprimer un compte
@@ -150,6 +153,28 @@ public class AccountController {
         ratingCacheService.addRatingToCache(ratingcache);
         ratingService.addRating(rating);
         return Response.status(Response.Status.CREATED).entity(rating).build();
+    }
+
+    //Supprimer un rating d'un film dans le cache et dans la base de données
+    @DELETE
+    @Path("/{accountId}/movie/{movieId}/rating")
+    public Response deleteRating(@PathParam("accountId") Long accountId,
+            @PathParam("movieId") Long movieId) {
+        LOGGER.info("Requête suppression rating pour accountId=" + accountId + ", movieId=" + movieId);
+        Account account = accountService.getAccountById(accountId);
+        if (account == null) {
+            LOGGER.warning("Compte non trouvé pour id=" + accountId);
+            return Response.status(Response.Status.NOT_FOUND).build();
+        }
+        Movie movie = movieService.getMovieById(movieId);
+        if (movie == null) {
+            LOGGER.warning("Film non trouvé pour id=" + movieId);
+            return Response.status(Response.Status.NOT_FOUND).build();
+        }
+        ratingCacheService.deleteRatingFromCache(accountId, movieId);
+        ratingService.deleteRating(accountId, movieId);
+        LOGGER.info("Suppression terminée pour accountId=" + accountId + ", movieId=" + movieId);
+        return Response.noContent().build();
     }
 
     //Passez tout les ratingscache au rating du compte

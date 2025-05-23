@@ -1,7 +1,6 @@
 package fr.univtln.pegliasco.tp.repository;
 
 import fr.univtln.pegliasco.encryption.differential_privacy.MakeNoise;
-import fr.univtln.pegliasco.tp.model.Movie;
 import fr.univtln.pegliasco.tp.model.Rating;
 import fr.univtln.pegliasco.tp.model.RatingCache;
 import fr.univtln.pegliasco.tp.model.view.RatingId;
@@ -56,13 +55,23 @@ public class RatingRepository {
         entityManager.persist(rating);
     }
 
-
-    public void delete(Long id) {
-        Rating rating = findById(id);
-        if (rating != null) {
+    public void delete(Rating rating) {
+        if (entityManager.contains(rating)) {
             entityManager.remove(rating);
+            entityManager.flush();
+        } else {
+            entityManager.remove(entityManager.merge(rating));
         }
     }
+
+    public void delete(Long id) {
+        Rating rating = entityManager.find(Rating.class, id);
+        if (rating != null) {
+            entityManager.remove(rating);
+            entityManager.flush();
+        }
+    }
+
 
     // findByAccountId
     public List<Rating> findByAccountId(Long accountId) {

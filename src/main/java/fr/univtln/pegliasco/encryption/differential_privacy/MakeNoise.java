@@ -3,8 +3,6 @@ package fr.univtln.pegliasco.encryption.differential_privacy;
 import java.util.List;
 import java.util.logging.Logger;
 
-import com.arjuna.ats.internal.jdbc.drivers.modifiers.list;
-
 import fr.univtln.pegliasco.tp.model.Rating;
 import fr.univtln.pegliasco.tp.model.view.RatingId;
 import lombok.NoArgsConstructor;

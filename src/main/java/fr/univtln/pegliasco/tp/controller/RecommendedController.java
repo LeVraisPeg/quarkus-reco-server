@@ -1,6 +1,5 @@
 package fr.univtln.pegliasco.tp.controller;
 
-import fr.univtln.pegliasco.tp.model.Account;
 import fr.univtln.pegliasco.tp.model.Movie;
 import fr.univtln.pegliasco.tp.repository.RatingRepository;
 import fr.univtln.pegliasco.tp.services.RecommendedService;

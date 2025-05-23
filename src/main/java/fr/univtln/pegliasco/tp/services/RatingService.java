@@ -13,9 +13,12 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.List;
+import java.util.logging.Logger;
 
 @ApplicationScoped
 public class RatingService {
+    private static final Logger LOGGER = Logger.getLogger(RatingService.class.getName());
+
     private final RatingRepository ratingRepository;
     private final AccountRepository accountRepository;
     private final MovieRepository movieRepository;
@@ -106,5 +109,18 @@ public class RatingService {
             return rating.getMovie();
         }
         return null;
+    }
+
+    // ratingService.deleteRating(accountId, movieId);
+    @Transactional
+    public void deleteRating(Long accountId, Long movieId) {
+        Account account = accountRepository.findById(accountId);
+        List<Rating> ratings = ratingRepository.findByAccountIdAndMovieId(accountId, movieId);
+        LOGGER.info("Suppression des ratings pour accountId=" + accountId + ", movieId=" + movieId + " : " + ratings.size() + " trouvé(s)");
+        for (Rating rating : ratings) {
+            LOGGER.info("Suppression du rating id=" + rating.getId());
+            account.getRatings().remove(rating);
+            //ratingRepository.delete(rating);
+        }
     }
 }
