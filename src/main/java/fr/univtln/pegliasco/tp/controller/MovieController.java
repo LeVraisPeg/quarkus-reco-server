@@ -188,7 +188,7 @@ public class MovieController {
         try {
             File csv = MovieService.generateCSV(allMovies);
             return Response.ok(csv)
-                    .header("Content-Disposition", "attachment; filename=\"movie_created.csv\"")
+                    .header("Content-Disposition", "attachment; filename=\"movies_created.csv\"")
                     .build();
         } catch (Exception e) {
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("Error generating CSV").build();
