@@ -198,7 +198,9 @@
                         movie.setId(Long.parseLong(tokens[0].trim()));
                         movie.setTitle(tokens[1].trim());
                         movie.setYear(parseDateSafely(tokens[2].trim()));
-                        if (movie.getYear() == null) continue;
+                        if (movie.getYear() == null) {
+                            movie.setYear(new Date());
+                        };
 
                         movie.setRuntime(Integer.parseInt(tokens[3].trim()));
 
