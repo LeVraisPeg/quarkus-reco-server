@@ -1,4 +1,4 @@
-package fr.univtln.pegliasco.tp.model.nosql;
+package fr.univtln.pegliasco.tp.model.nosql.Elastic;
 
 import java.util.List;
 

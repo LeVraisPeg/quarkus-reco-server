@@ -5,6 +5,9 @@ import co.elastic.clients.elasticsearch.ElasticsearchClient;
 import co.elastic.clients.elasticsearch.core.GetResponse;
 
 import fr.univtln.pegliasco.tp.model.nosql.MovieElastic;
+
+import fr.univtln.pegliasco.tp.model.nosql.Elastic.MovieElastic;
+
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 
@@ -68,6 +71,8 @@ public class MovieElasticService {
         }
         return null;
     }
+
+
 
 
 

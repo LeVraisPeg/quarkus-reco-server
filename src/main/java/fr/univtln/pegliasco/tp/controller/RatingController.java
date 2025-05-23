@@ -4,7 +4,13 @@ import fr.univtln.pegliasco.encryption.differential_privacy.MakeNoise;
 
 import fr.univtln.pegliasco.tp.model.Movie;
 import fr.univtln.pegliasco.tp.model.Rating;
+
+import fr.univtln.pegliasco.tp.model.RatingCache;
+import fr.univtln.pegliasco.tp.model.User;
+import fr.univtln.pegliasco.tp.model.nosql.Elastic.RatingElastic;
+
 import fr.univtln.pegliasco.tp.model.view.RatingId;
+import fr.univtln.pegliasco.tp.services.RatingElasticService;
 import fr.univtln.pegliasco.tp.services.RatingService;
 
 import jakarta.inject.Inject;
@@ -23,6 +29,8 @@ import java.util.List;
 public class RatingController {
     @Inject
     RatingService ratingService;
+    @Inject
+    RatingElasticService ratingElasticService;
 
     // Récupérer toutes les évaluations
     @GET
@@ -98,10 +106,10 @@ public class RatingController {
     // Récupérer une évaluation par son ID
     @GET
     @Path("/{id}")
-    public Response getRatingById(@PathParam("id") Long id) {
-        Rating rating = ratingService.getRatingById(id);
+    public Response getRatingById(@PathParam("id") Long id) throws IOException {
+        RatingElastic rating = ratingElasticService.getRatingById(id);
         if (rating != null) {
-            return Response.ok(MakeNoise.applyLapplaceNoise(rating)).build();
+            return Response.ok(rating).build();
         } else {
             return Response.status(Response.Status.NOT_FOUND).build();
         }
