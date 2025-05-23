@@ -21,7 +21,6 @@ public class Rating {
     private Account account;
 
     @ManyToOne
-    @JsonIgnore
     private Movie movie;
 
     @Column

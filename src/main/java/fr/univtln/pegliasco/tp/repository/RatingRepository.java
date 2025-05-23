@@ -23,12 +23,11 @@ public class RatingRepository {
                 .getResultList();
     }
 
-
     public Rating findById(Long id) {
         return entityManager.find(Rating.class, id);
     }
 
-    //findCacheByAccountId
+    // findCacheByAccountId
     public List<RatingCache> findCacheByAccountId(Long accountId) {
         String query = "SELECT r FROM RatingCache r WHERE r.account.id = :accountId";
         return entityManager.createQuery(query, RatingCache.class)
@@ -48,8 +47,6 @@ public class RatingRepository {
     public void update(Rating rating) {
         entityManager.merge(rating);
     }
-
-
 
     public void add(Rating rating) {
         entityManager.persist(rating);
@@ -72,14 +69,12 @@ public class RatingRepository {
         }
     }
 
-
     // findByAccountId
     public List<Rating> findByAccountId(Long accountId) {
-        List<Rating> ratings = entityManager
+        return entityManager
                 .createQuery("SELECT r FROM Rating r WHERE r.account.id = :accountId", Rating.class)
                 .setParameter("accountId", accountId)
                 .getResultList();
-        return MakeNoise.applyLapplaceNoise(ratings);
     }
 
     public List<RatingId> findAllId() {
@@ -101,7 +96,5 @@ public class RatingRepository {
                 .getSingleResult();
         return avg != null ? avg : 0.0;
     }
-
-
 
 }
