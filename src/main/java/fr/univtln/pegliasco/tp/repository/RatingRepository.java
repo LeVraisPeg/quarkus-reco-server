@@ -84,9 +84,11 @@ public class RatingRepository {
     }
 
     public boolean ratingExistsForUser(Long id) {
-        return entityManager.createQuery("SELECT COUNT(r) FROM Rating r WHERE r.id = :id", Long.class)
-                .setParameter("id", id)
-                .getSingleResult() > 0;
+        Long count = entityManager.createQuery(
+                "SELECT COUNT(r) FROM Rating r WHERE r.account.id = :accountId", Long.class)
+                .setParameter("accountId", id)
+                .getSingleResult();
+        return count > 0;
     }
 
     public double getAverageRating(Long movieId) {

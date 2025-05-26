@@ -6,7 +6,7 @@ import org.eclipse.microprofile.rest.client.inject.RegisterRestClient;
 import java.util.List;
 
 
-@Path("/recommendations")
+@Path("/")
 @RegisterRestClient(configKey = "recommendation-api")
 public interface RecommendedInterface {
 
@@ -25,7 +25,7 @@ public interface RecommendedInterface {
      *
      */
     @GET
-    @Path("/{userId}")
+    @Path("/recommendations/{userId}")
     List<Long> getRecommendations(@PathParam("userId") Long userId,
                                           @QueryParam("top_n") int count);
 

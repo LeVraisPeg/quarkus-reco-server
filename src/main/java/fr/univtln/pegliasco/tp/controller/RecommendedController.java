@@ -49,8 +49,8 @@ public class RecommendedController {
     @GET
     public List<Movie> getRecommendations(@QueryParam("id") Long id, @QueryParam("nb") int nb) {
         List<Movie> movies = getMoviesForUser(id, nb);
-        MovieRandomSelector movieRandomSelector = new MovieRandomSelector(movies, utilityFunction);
-        return movieRandomSelector.selectRandomMovies(nb);
+        return movies;
+
     }
 
 
