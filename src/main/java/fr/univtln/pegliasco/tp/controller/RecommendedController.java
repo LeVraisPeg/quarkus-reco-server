@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.function.Function;
 
 import fr.univtln.pegliasco.encryption.differential_privacy.MovieRandomSelector;
+import jakarta.ws.rs.core.Response;
 
 /**
  * REST controller that provides movie recommendations for users.
@@ -50,5 +51,13 @@ public class RecommendedController {
         List<Movie> movies = getMoviesForUser(id, nb);
         MovieRandomSelector movieRandomSelector = new MovieRandomSelector(movies, utilityFunction);
         return movieRandomSelector.selectRandomMovies(nb);
+    }
+
+
+    @POST
+    @Path("/init")
+    public Response init() {
+        recommendedService.init();
+        return Response.noContent().build();
     }
 }

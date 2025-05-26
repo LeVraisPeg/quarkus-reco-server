@@ -18,22 +18,20 @@ public class RecommendedService {
     @Inject
     MovieService movieService;
 
-    public List<Movie> fetchRecommendations(Long userId, int count) {
-        List<List<Object>> recommendations = recommendedInterface.getRecommendations(userId, count);
-        List<Long> movieIds = recommendations.stream()
-                .map(rec -> ((Number) rec.get(0)).longValue())
-                .collect(Collectors.toList());
+    public void init() {
+        recommendedInterface.initRecommender();
+    }
 
+    public List<Movie> fetchRecommendations(Long userId, int count) {
+        List<Long> movieIds = recommendedInterface.getRecommendations(userId, count);
         return movieService.getMoviesByIds(movieIds);
     }
 
     public List<Movie> fetchColdRecommendations(int count) {
-        List<List<Object>> recommendations = recommendedInterface.getColdRecommendations(count);
-        List<Long> movieIds = recommendations.stream()
-                .map(rec -> ((Number) rec.get(0)).longValue())
-                .collect(Collectors.toList());
-
+        List<Long> movieIds = recommendedInterface.getColdRecommendations(count);
         return movieService.getMoviesByIds(movieIds);
     }
+
+
 
 }

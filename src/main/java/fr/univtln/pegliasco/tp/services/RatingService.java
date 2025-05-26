@@ -33,7 +33,7 @@ public class RatingService {
     public static File generateCSV(List<RatingId> ratings) throws IOException {
         File tempFile = File.createTempFile("people-", ".csv");
         try (FileWriter writer = new FileWriter(tempFile)) {
-            writer.append("userId,movieId,rating\n");
+            writer.append("userId,movieId,rating,timestamp\n");
             for (RatingId p : ratings) {
                 writer.append(String.valueOf(p.userId())).append(",")
                         .append(String.valueOf(p.movieId())).append(",")

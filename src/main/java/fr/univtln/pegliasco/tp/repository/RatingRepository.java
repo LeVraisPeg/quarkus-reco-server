@@ -79,7 +79,7 @@ public class RatingRepository {
 
     public List<RatingId> findAllId() {
         return entityManager.createQuery(
-                "SELECT new RatingId(r.account.id, r.movie.id,r.rate) FROM Rating r",
+                "SELECT new RatingId(r.account.id, r.movie.id,r.rate,r.timestamp) FROM Rating r",
                 RatingId.class).getResultList();
     }
 
