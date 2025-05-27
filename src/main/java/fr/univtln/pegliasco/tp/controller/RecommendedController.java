@@ -9,7 +9,7 @@ import jakarta.ws.rs.core.MediaType;
 import java.util.List;
 import java.util.function.Function;
 
-import fr.univtln.pegliasco.encryption.differential_privacy.MovieRandomSelector;
+import fr.univtln.pegliasco.encryption.differential_privacy.ExponentialMechanism;
 import jakarta.ws.rs.core.Response;
 
 /**
@@ -36,23 +36,19 @@ public class RecommendedController {
     @Inject
     RatingRepository ratingRepository;
 
-    private Function<Movie, Double> utilityFunction = movie -> -Math
-            .abs(ratingRepository.getAverageRating(movie.getId()) - 2.5);
-
-    private List<Movie> getMoviesForUser(Long id, int nb) {
-        if (ratingRepository.ratingExistsForUser(id)) {
-            return recommendedService.fetchRecommendations(id, nb);
-        }
-        return recommendedService.fetchColdRecommendations(nb);
-    }
-
     @GET
     public List<Movie> getRecommendations(@QueryParam("id") Long id, @QueryParam("nb") int nb) {
-        List<Movie> movies = getMoviesForUser(id, nb);
-        return movies;
+        if (ratingRepository.getNumberRatingForUser(id) > 0) {
+            return recommendedService.fetchRecommendations(id, nb);
+        }
+        List<Movie> movies = recommendedService.fetchColdRecommendations(2 * nb);
+        Function<Movie, Double> utilityFunction = movie -> Math
+                .abs(ratingRepository.getAverageRating(movie.getId()) - 2.5)
+                * ratingRepository.getNumberOfRatings(movie.getId()) / 5;
+        ExponentialMechanism selector = new ExponentialMechanism(movies, utilityFunction);
+        return selector.selectRandomMovies(nb);
 
     }
-
 
     @POST
     @Path("/init")
