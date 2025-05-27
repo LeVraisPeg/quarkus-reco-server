@@ -2,6 +2,8 @@ package fr.univtln.pegliasco.tp.controller;
 
 import fr.univtln.pegliasco.tp.model.Gender;
 import fr.univtln.pegliasco.tp.services.GenderService;
+import fr.univtln.pegliasco.tp.model.nosql.Elastic.GenderElastic;
+import fr.univtln.pegliasco.tp.services.GenderElasticService;
 
 import jakarta.inject.Inject;
 import jakarta.ws.rs.*;
@@ -17,11 +19,18 @@ import java.util.List;
 public class GenderController {
     @Inject
     GenderService genderService;
+    @Inject
+    GenderElasticService genderElasticService;
 
     // Récupérer tous les genres
     @GET
-    public List<Gender> getAllGenders() {
-        return genderService.getAllGenders();
+    public List<GenderElastic> getAllGenders() {
+        try {
+            return genderElasticService.getAllGenders();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
     }
     // Ajouter un genre
     @POST

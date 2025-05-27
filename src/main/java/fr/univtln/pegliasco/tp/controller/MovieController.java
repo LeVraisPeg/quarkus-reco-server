@@ -2,7 +2,8 @@ package fr.univtln.pegliasco.tp.controller;
 
 import fr.univtln.pegliasco.tp.model.Rating;
 import fr.univtln.pegliasco.tp.model.Tag;
-import fr.univtln.pegliasco.tp.model.nosql.MovieElastic;
+import fr.univtln.pegliasco.tp.model.nosql.Elastic.MovieElastic;
+import fr.univtln.pegliasco.tp.services.GenderElasticService;
 import fr.univtln.pegliasco.tp.services.MovieService;
 import fr.univtln.pegliasco.encryption.differential_privacy.MakeNoise;
 import fr.univtln.pegliasco.tp.model.Movie;
@@ -31,6 +32,8 @@ public class MovieController {
     MovieElasticService movieElasticService;
 
     Logger logger = Logger.getLogger(MovieController.class.getName());
+    @Inject
+    GenderElasticService genderElasticService;
 
     // Récupérer tous les films
     @GET
@@ -102,17 +105,7 @@ public class MovieController {
         return Response.ok(averageRating).build();
     }
 
-    // Récupérer les films par genre
-    @GET
-    @Path("/genre/{genre}")
-    public Response findByGender(@PathParam("genre") String genre) {
-        List<Movie> movies = movieService.findByGender(genre);
-        if (movies != null && !movies.isEmpty()) {
-            return Response.ok(movies).build();
-        } else {
-            return Response.status(Response.Status.NOT_FOUND).build();
-        }
-    }
+
 
     // Récupérer les films par tag
     @GET
@@ -153,6 +146,17 @@ public class MovieController {
         MovieElastic movie = movieElasticService.getMovieById(id);
         if (movie != null) {
             return Response.ok(movie).build();
+        } else {
+            return Response.status(Response.Status.NOT_FOUND).build();
+        }
+    }
+    // Récupérer les films par genre
+    @GET
+    @Path("/genre/{genre}")
+    public Response findByGender(@PathParam("genre") String genre) throws IOException {
+        List<MovieElastic> movies = genderElasticService.getMoviesByGender(genre);
+        if (movies != null && !movies.isEmpty()) {
+            return Response.ok(movies).build();
         } else {
             return Response.status(Response.Status.NOT_FOUND).build();
         }
