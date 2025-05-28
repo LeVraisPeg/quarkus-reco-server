@@ -57,15 +57,17 @@ public class MovieController {
     }
 
     // Supprimer un film par son ID
-    // Dans MovieController.java
     @DELETE
     @Path("/{id}")
     public Response deleteMovie(@PathParam("id") Long id) {
         try {
             movieService.deleteMovieAndCleanup(id);
-            return Response.noContent().build();
+            return Response.noContent().build(); // 204, pas de JSON attendu
         } catch (Exception e) {
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("Erreur lors de la suppression").build();
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .entity("{\"error\":\"Erreur lors de la suppression\"}")
+                    .type(MediaType.APPLICATION_JSON)
+                    .build();
         }
     }
 

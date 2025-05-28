@@ -83,11 +83,13 @@ public class RatingRepository {
                 RatingId.class).getResultList();
     }
 
-    public double getNumberRatingForUser(Long id) {
-        return entityManager.createQuery(
-                "SELECT COUNT(r) FROM Rating r WHERE r.account.id = :accountId", Long.class)
+    public boolean hasNumberOfRatingsAboveLimit(Long id, int maxLimit) {
+        List<Long> ids = entityManager.createQuery(
+                        "SELECT r.id FROM Rating r WHERE r.account.id = :accountId", Long.class)
                 .setParameter("accountId", id)
-                .getSingleResult();
+                .setMaxResults(maxLimit)
+                .getResultList();
+        return ids.size() > maxLimit;
     }
 
     public double getAverageRating(Long movieId) {

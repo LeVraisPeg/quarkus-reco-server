@@ -29,6 +29,7 @@ public class GenderRepository {
 
     public void update(Gender gender) {
         entityManager.merge(gender);
+        entityManager.flush();
     }
 
     public void delete(Long id) {
@@ -47,6 +48,8 @@ public class GenderRepository {
             return null;
         }
     }
+
+
 
 
 }

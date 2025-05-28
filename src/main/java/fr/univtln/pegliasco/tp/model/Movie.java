@@ -48,7 +48,7 @@ public class Movie {
     @Column(length = 1000)
     private String poster;
 
-    @OneToMany(mappedBy = "movie", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
+    @OneToMany(mappedBy = "movie", orphanRemoval = true, fetch = FetchType.EAGER)
     @JsonIgnore
     private List<Rating> ratings;
 
