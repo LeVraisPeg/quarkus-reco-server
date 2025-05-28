@@ -1,31 +1,37 @@
 package fr.univtln.pegliasco.tp.Interface;
 
-import jakarta.ws.rs.GET;
-import jakarta.ws.rs.Path;
-import jakarta.ws.rs.PathParam;
-import jakarta.ws.rs.QueryParam;
+import jakarta.ws.rs.*;
 import org.eclipse.microprofile.rest.client.inject.RegisterRestClient;
 
 import java.util.List;
 
 
-@Path("/recommendations")
+@Path("/")
 @RegisterRestClient(configKey = "recommendation-api")
 public interface RecommendedInterface {
+
+
+    @POST
+    @Path("/init_recommendation")
+    void initRecommender();
+
+
     /**
      * Récupérer les recommandations pour un utilisateur donné
      *
      * @param userId l'ID de l'utilisateur
      * @param count  le nombre de recommandations à récupérer
      * @return une liste d'IDs de films recommandés
+     *
      */
     @GET
-    @Path("/{userId}")
-    List<List<Object>> getRecommendations(@PathParam("userId") Long userId,
+    @Path("/recommendations/{userId}")
+    List<Long> getRecommendations(@PathParam("userId") Long userId,
                                           @QueryParam("top_n") int count);
 
     @GET
-    @Path("/cold_recommendation")
-    List<List<Object>> getColdRecommendations(@QueryParam("top_n") int count);
+    @Path("/cold_recommendations")
+    List<Long> getColdRecommendations(@QueryParam("top_n") int count);
+
 
 }

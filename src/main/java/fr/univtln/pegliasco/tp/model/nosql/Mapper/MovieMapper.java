@@ -1,6 +1,7 @@
-package fr.univtln.pegliasco.tp.model.nosql;
+package fr.univtln.pegliasco.tp.model.nosql.Mapper;
 
 import fr.univtln.pegliasco.tp.model.Movie;
+import fr.univtln.pegliasco.tp.model.nosql.Elastic.MovieElastic;
 
 import java.time.ZoneId;
 import java.util.List;
@@ -36,5 +37,20 @@ public class MovieMapper {
                 movie.getPoster(),
                 tags
         );
+    }
+
+    public static Movie fromElastic(MovieElastic movieElastic) {
+        Movie movie = new Movie();
+        movie.setId(movieElastic.getId());
+        movie.setTitle(movieElastic.getTitle());
+        movie.setYear(movieElastic.getYear() != 0 ? java.util.Date.from(java.time.LocalDate.of(movieElastic.getYear(), 1, 1).atStartOfDay(ZoneId.systemDefault()).toInstant()) : null);
+        movie.setDirector(movieElastic.getDirector());
+        movie.setWriters(movieElastic.getWriters());
+        movie.setActors(movieElastic.getActors());
+        movie.setPlot(movieElastic.getPlot());
+        movie.setCountry(movieElastic.getCountry());
+        movie.setRuntime(movieElastic.getRuntime() != 0 ? movieElastic.getRuntime() : null);
+
+        return movie;
     }
 }

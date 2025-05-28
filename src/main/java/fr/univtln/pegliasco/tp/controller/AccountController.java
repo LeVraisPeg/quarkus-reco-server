@@ -3,16 +3,18 @@ package fr.univtln.pegliasco.tp.controller;
 import fr.univtln.pegliasco.tp.model.Movie;
 import fr.univtln.pegliasco.tp.model.Rating;
 import fr.univtln.pegliasco.tp.model.RatingCache;
-import fr.univtln.pegliasco.tp.services.AccountService;
+import fr.univtln.pegliasco.tp.model.nosql.Mapper.MovieMapper;
+import fr.univtln.pegliasco.tp.services.*;
 import fr.univtln.pegliasco.tp.model.Account;
+import fr.univtln.pegliasco.tp.model.nosql.Elastic.MovieElastic;
 
 import fr.univtln.pegliasco.tp.services.MovieService;
-import fr.univtln.pegliasco.tp.services.RatingCacheService;
-import fr.univtln.pegliasco.tp.services.RatingService;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+
+import java.io.IOException;
 import java.util.List;
 
 import java.util.logging.Logger;
@@ -30,6 +32,8 @@ public class AccountController {
     RatingCacheService ratingCacheService;
     @Inject
     RatingService ratingService;
+    @Inject
+    MovieElasticService movieElasticService;
 
     // Récupérer tous les comptes
     @GET
@@ -133,12 +137,19 @@ public class AccountController {
     @POST
     @Path("/{accountId}/movie/{movieId}/{rate}/rating")
     public Response rateMovie(@PathParam("accountId") Long accountId,
-            @PathParam("movieId") Long movieId,@PathParam("rate") Float rate) {
+            @PathParam("movieId") Long movieId,@PathParam("rate") Float rate) throws IOException {
         Account account = accountService.getAccountById(accountId);
         if (account == null) {
             return Response.status(Response.Status.NOT_FOUND).build();
         }
-        Movie movie = movieService.getMovieById(movieId);
+        MovieElastic movieElastic = movieElasticService.getMovieById(movieId);
+        if (movieElastic == null) {
+            return Response.status(Response.Status.NOT_FOUND).build();
+        }
+
+
+        Movie movie = MovieMapper.fromElastic(movieElastic);
+
         RatingCache ratingcache = new RatingCache();
         Rating rating = new Rating();
         rating.setAccount(account);

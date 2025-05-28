@@ -1,12 +1,13 @@
 package fr.univtln.pegliasco.tp.controller;
 
+import fr.univtln.pegliasco.tp.model.Gender;
 import fr.univtln.pegliasco.tp.model.Rating;
 import fr.univtln.pegliasco.tp.model.Tag;
-import fr.univtln.pegliasco.tp.model.nosql.MovieElastic;
-import fr.univtln.pegliasco.tp.services.MovieService;
+import fr.univtln.pegliasco.tp.model.nosql.Elastic.GenderElastic;
+import fr.univtln.pegliasco.tp.model.nosql.Elastic.MovieElastic;
+import fr.univtln.pegliasco.tp.services.*;
 import fr.univtln.pegliasco.encryption.differential_privacy.MakeNoise;
 import fr.univtln.pegliasco.tp.model.Movie;
-import fr.univtln.pegliasco.tp.services.MovieElasticService;
 
 import jakarta.inject.Inject;
 import jakarta.ws.rs.*;
@@ -18,6 +19,7 @@ import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
 import java.util.logging.Logger;
 
 @Path("/movie")
@@ -31,6 +33,12 @@ public class MovieController {
     MovieElasticService movieElasticService;
 
     Logger logger = Logger.getLogger(MovieController.class.getName());
+    @Inject
+    GenderElasticService genderElasticService;
+    @Inject
+    GenderService genderService;
+    @Inject
+    TagService tagService;
 
     // Récupérer tous les films
     @GET
@@ -49,11 +57,16 @@ public class MovieController {
     }
 
     // Supprimer un film par son ID
+    // Dans MovieController.java
     @DELETE
     @Path("/{id}")
     public Response deleteMovie(@PathParam("id") Long id) {
-        movieService.deleteMovie(id);
-        return Response.noContent().build();
+        try {
+            movieService.deleteMovieAndCleanup(id);
+            return Response.noContent().build();
+        } catch (Exception e) {
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("Erreur lors de la suppression").build();
+        }
     }
 
     // Mettre à jour un film par son ID
@@ -102,17 +115,7 @@ public class MovieController {
         return Response.ok(averageRating).build();
     }
 
-    // Récupérer les films par genre
-    @GET
-    @Path("/genre/{genre}")
-    public Response findByGender(@PathParam("genre") String genre) {
-        List<Movie> movies = movieService.findByGender(genre);
-        if (movies != null && !movies.isEmpty()) {
-            return Response.ok(movies).build();
-        } else {
-            return Response.status(Response.Status.NOT_FOUND).build();
-        }
-    }
+
 
     // Récupérer les films par tag
     @GET
@@ -153,6 +156,17 @@ public class MovieController {
         MovieElastic movie = movieElasticService.getMovieById(id);
         if (movie != null) {
             return Response.ok(movie).build();
+        } else {
+            return Response.status(Response.Status.NOT_FOUND).build();
+        }
+    }
+    // Récupérer les films par genre
+    @GET
+    @Path("/genre/{genre}")
+    public Response findByGender(@PathParam("genre") String genre) throws IOException {
+        List<MovieElastic> movies = genderElasticService.getMoviesByGender(genre);
+        if (movies != null && !movies.isEmpty()) {
+            return Response.ok(movies).build();
         } else {
             return Response.status(Response.Status.NOT_FOUND).build();
         }

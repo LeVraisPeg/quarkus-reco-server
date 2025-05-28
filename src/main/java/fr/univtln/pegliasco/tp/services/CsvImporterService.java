@@ -4,8 +4,10 @@
     import com.opencsv.CSVReaderBuilder;
     import com.opencsv.exceptions.CsvValidationException;
     import fr.univtln.pegliasco.tp.model.*;
-    import fr.univtln.pegliasco.tp.model.nosql.MovieElastic;
-    import fr.univtln.pegliasco.tp.model.nosql.MovieMapper;
+    import fr.univtln.pegliasco.tp.model.nosql.Elastic.GenderElastic;
+    import fr.univtln.pegliasco.tp.model.nosql.Elastic.MovieElastic;
+    import fr.univtln.pegliasco.tp.model.nosql.Mapper.GenderMapper;
+    import fr.univtln.pegliasco.tp.model.nosql.Mapper.MovieMapper;
     import jakarta.enterprise.context.ApplicationScoped;
     import jakarta.inject.Inject;
     import jakarta.persistence.EntityManager;
@@ -42,27 +44,13 @@
 
         @Inject
         MovieElasticService movieElasticService;
+        @Inject
+        GenderElasticService genderElasticService;
 
         private static final Logger logger = Logger.getLogger(CsvImporterService.class.getName());
         @Inject
         TagService tagService;
 
-        private void waitForElasticsearchReady() {
-            int maxRetries = 30;
-            int retry = 0;
-            while (retry < maxRetries) {
-                try {
-                    movieElasticService.ping(); // À implémenter dans MovieElasticService
-                    logger.info("Elasticsearch est prêt.");
-                    return;
-                } catch (Exception e) {
-                    retry++;
-                    logger.warnf("Elasticsearch non prêt, tentative %d/%d", retry, maxRetries);
-                    try { Thread.sleep(3000); } catch (InterruptedException ignored) {}
-                }
-            }
-            throw new RuntimeException("Elasticsearch n'est pas prêt après plusieurs tentatives.");
-        }
 
         public void importRatingsFromCsv(InputStream inputStream) throws IOException, CsvValidationException {
             final int batchSize = 10000;
@@ -211,6 +199,7 @@
                             Gender gender = genreCache.computeIfAbsent(genreName, name -> genderService.findOrCreateByName(name));
                             genderList.add(gender);
                         }
+
                         movie.setGenders(genderList);
 
                         movie.setDirector(tokens[5].trim());
@@ -249,14 +238,22 @@
             // Attendre la fin
             CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
 
+            // Après la persistance des films
+            List<Gender> allGenders = genderService.getAllGenders();
+            for (Gender gender : allGenders) {
+                GenderElastic genderElastic = GenderMapper.toElastic(gender);
+                genderElasticService.indexGender(genderElastic);
+            }
+
             logger.infof("Importation terminée depuis le fichier : %s", inputStream.toString());
+
+
         }
 
 
 
         private void persistBatchWithTransaction(List<Movie> movies) {
             // Attendre qu'Elasticsearch soit prêt avant de commencer le batch
-            waitForElasticsearchReady();
 
             EntityManager entityManager = em.getEntityManagerFactory().createEntityManager();
             entityManager.getTransaction().begin();
@@ -308,8 +305,7 @@
 
 
         public void importTagsFromCsv(InputStream inputStream) throws IOException, CsvValidationException {
-            final int batchSize = 10000;
-            List<Tag> currentBatch = new ArrayList<>(batchSize);
+            final int batchSize = 5000;
 
             // Mise en cache des comptes et films
             Map<Long, Account> accountCache = accountService.findAllAsMap();
@@ -353,13 +349,18 @@
                         }
                     }
                 }
-
-                currentBatch.addAll(tagMap.values());
-                persistBatchTag(currentBatch);
-                System.out.println("Import terminé depuis : " + inputStream.toString());
             }
-        }
 
+            // Découpage en batchs et persistance
+            List<Tag> allTags = new ArrayList<>(tagMap.values());
+            for (int i = 0; i < allTags.size(); i += batchSize) {
+                //logger.info("Traitement du batch de tags de " + i + " à " + Math.min(i + batchSize, allTags.size()));
+                List<Tag> subList = allTags.subList(i, Math.min(i + batchSize, allTags.size()));
+                persistBatchTag(subList);
+            }
+
+            System.out.println("Import terminé depuis : " + inputStream.toString());
+        }
 
 
         private void persistBatchTag(List<Tag> tags) {
