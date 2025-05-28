@@ -38,7 +38,7 @@ public class RecommendedController {
 
     @GET
     public List<Movie> getRecommendations(@QueryParam("id") Long id, @QueryParam("nb") int nb) {
-        if (ratingRepository.getNumberRatingForUser(id) > 0) {
+        if (ratingRepository.hasNumberOfRatingsAboveLimit(id, 0)) {
             return recommendedService.fetchRecommendations(id, nb);
         }
         List<Movie> movies = recommendedService.fetchColdRecommendations(2 * nb);

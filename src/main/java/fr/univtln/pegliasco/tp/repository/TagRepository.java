@@ -39,6 +39,7 @@ public class TagRepository {
     // Mettre à jour un tag par son ID
     public void update(Tag tag) {
         entityManager.merge(tag);
+        entityManager.flush();
     }
 
     // Récupérer un tag par son ID
@@ -55,6 +56,13 @@ public class TagRepository {
                 .getResultList()
                 .stream()
                 .findFirst();
+    }
+
+    //findByMovieId
+    public List<Tag> findByMovieId(Long movieId) {
+        return entityManager.createQuery("SELECT t FROM Tag t JOIN t.movies m WHERE m.id = :movieId", Tag.class)
+                .setParameter("movieId", movieId)
+                .getResultList();
     }
 
 }

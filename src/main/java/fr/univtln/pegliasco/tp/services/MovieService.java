@@ -6,10 +6,13 @@ import fr.univtln.pegliasco.tp.model.Rating;
 import fr.univtln.pegliasco.tp.model.Tag;
 import fr.univtln.pegliasco.tp.model.nosql.Elastic.MovieElastic;
 import fr.univtln.pegliasco.tp.model.nosql.Mapper.MovieMapper;
+import fr.univtln.pegliasco.tp.repository.GenderRepository;
 import fr.univtln.pegliasco.tp.repository.MovieRepository;
+import fr.univtln.pegliasco.tp.repository.TagRepository;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import jakarta.enterprise.context.ApplicationScoped;
+import org.jboss.logging.Logger;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -23,6 +26,11 @@ public class MovieService {
 
     @Inject
     MovieElasticService movieElasticService;
+
+    @Inject
+    TagRepository tagRepository;
+    @Inject
+    GenderRepository genderRepository;
 
 
 
@@ -64,32 +72,60 @@ public class MovieService {
         return movies;
     }
 
+
+
     @Transactional
     public void deleteMovieAndCleanup(Long id) throws IOException {
-        // Suppression du film dans Elastic
+        //Logger log = Logger.getLogger(MovieService.class);
+
+        //log.infof("Suppression du film avec l'id %d : début du processus.", id);
+        Movie movie = movieRepository.findById(id);
+        if (movie == null) {
+            //log.warnf("Aucun film trouvé avec l'id %d. Suppression annulée.", id);
+            return;
+        }
+        //Detacher le film des notes (propriétaire = Rating)
+        if (movie.getRatings() != null) {
+            //log.infof("Détachement du film des %d notes associées.", movie.getRatings().size());
+            for (Rating rating : movie.getRatings()) {
+                rating.setMovie(null); // côté inverse
+                //log.debugf("Note retirée du film id=%d.", rating.getId());
+            }
+            movie.getRatings().clear(); // côté propriétaire
+        }
+
+        // Détacher le film des tags (propriétaire = Tag)
+        if (movie.getTags() != null) {
+            //log.infof("Détachement du film des %d tags associés.", movie.getTags().size());
+            for (Tag tag : movie.getTags()) {
+                tag.getMovies().remove(movie);
+                tagRepository.update(tag);
+                //log.debugf("Film retiré du tag id=%d.", tag.getId());
+            }
+            movie.getTags().clear();
+        }
+
+        // Détacher le film des genres (propriétaire = Movie)
+        if (movie.getGenders() != null) {
+            //log.infof("Détachement du film des %d genres associés.", movie.getGenders().size());
+            for (Gender gender : movie.getGenders()) {
+                gender.getMovies().remove(movie); // côté inverse
+            genderRepository.update(gender);
+                //log.debugf("Film retiré du genre id=%d.", gender.getId());
+            }
+            movie.getGenders().clear(); // côté propriétaire
+        }
+
+        //log.infof("Suppression du film dans Elasticsearch (id=%d).", id);
         movieElasticService.deleteMovie(id);
 
-        // Suppression du film dans les genres
-        Movie movie = movieRepository.findById(id);
-        if (movie != null) {
-            if (movie.getGenders() != null) {
-                for (Gender gender : movie.getGenders()) {
-                    gender.getMovies().removeIf(m -> m.getId().equals(id));
-                }
-            }
-            if (movie.getTags() != null) {
-                for (Tag tag : movie.getTags()) {
-                    tag.getMovies().removeIf(m -> m.getId().equals(id));
-                }
-            }
-            // Les saveOrUpdate sur les genres/tags ne sont pas nécessaires si la relation est propriétaire côté Movie
-            // Sinon, décommente :
-            // genderService.saveOrUpdate(gender);
-            // tagService.saveOrUpdate(tag);
+        //log.infof("Suppression du film en base (id=%d).", id);
+        movieRepository.delete(id);
 
-            movieRepository.delete(id);
-        }
+        //log.infof("Suppression du film avec l'id %d terminée.", id);
     }
+
+
 
     public Movie getMovieById(Long id) {
         return movieRepository.findById(id);

@@ -109,6 +109,7 @@ public class MovieRepository {
         Movie movie = findById(id);
         if (movie != null) {
             entityManager.remove(movie);
+            entityManager.flush();
         }
     }
 
