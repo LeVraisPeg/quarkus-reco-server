@@ -305,8 +305,7 @@
 
 
         public void importTagsFromCsv(InputStream inputStream) throws IOException, CsvValidationException {
-            final int batchSize = 10000;
-            List<Tag> currentBatch = new ArrayList<>(batchSize);
+            final int batchSize = 5000;
 
             // Mise en cache des comptes et films
             Map<Long, Account> accountCache = accountService.findAllAsMap();
@@ -350,13 +349,18 @@
                         }
                     }
                 }
-
-                currentBatch.addAll(tagMap.values());
-                persistBatchTag(currentBatch);
-                System.out.println("Import terminé depuis : " + inputStream.toString());
             }
-        }
 
+            // Découpage en batchs et persistance
+            List<Tag> allTags = new ArrayList<>(tagMap.values());
+            for (int i = 0; i < allTags.size(); i += batchSize) {
+                //logger.info("Traitement du batch de tags de " + i + " à " + Math.min(i + batchSize, allTags.size()));
+                List<Tag> subList = allTags.subList(i, Math.min(i + batchSize, allTags.size()));
+                persistBatchTag(subList);
+            }
+
+            System.out.println("Import terminé depuis : " + inputStream.toString());
+        }
 
 
         private void persistBatchTag(List<Tag> tags) {

@@ -70,6 +70,10 @@ public class MovieElasticService {
         return null;
     }
 
+    public void deleteMovie(Long id) throws IOException {
+        client.delete(d -> d.index("movies").id(String.valueOf(id)));
+    }
+
     //Recupérer un film par genre
     public List<MovieElastic> getMoviesByGender(String gender) throws IOException {
         var response = client.search(s -> s

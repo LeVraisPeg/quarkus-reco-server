@@ -58,4 +58,16 @@ public class GenderService {
         return gender;
     }
 
+    //findByName
+    @Transactional
+    public Gender findByName(String name) {
+        return genderRepository.findByName(name);
+    }
+
+    //saveOrUpdate
+    @Transactional
+    public void saveOrUpdate(Gender gender) {
+         genderRepository.update(gender);
+    }
+
 }

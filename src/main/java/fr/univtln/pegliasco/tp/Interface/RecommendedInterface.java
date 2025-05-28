@@ -30,7 +30,7 @@ public interface RecommendedInterface {
                                           @QueryParam("top_n") int count);
 
     @GET
-    @Path("/cold_recommendation")
+    @Path("/cold_recommendations")
     List<Long> getColdRecommendations(@QueryParam("top_n") int count);
 
 

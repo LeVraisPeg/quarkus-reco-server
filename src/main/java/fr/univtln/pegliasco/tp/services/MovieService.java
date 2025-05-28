@@ -64,6 +64,33 @@ public class MovieService {
         return movies;
     }
 
+    @Transactional
+    public void deleteMovieAndCleanup(Long id) throws IOException {
+        // Suppression du film dans Elastic
+        movieElasticService.deleteMovie(id);
+
+        // Suppression du film dans les genres
+        Movie movie = movieRepository.findById(id);
+        if (movie != null) {
+            if (movie.getGenders() != null) {
+                for (Gender gender : movie.getGenders()) {
+                    gender.getMovies().removeIf(m -> m.getId().equals(id));
+                }
+            }
+            if (movie.getTags() != null) {
+                for (Tag tag : movie.getTags()) {
+                    tag.getMovies().removeIf(m -> m.getId().equals(id));
+                }
+            }
+            // Les saveOrUpdate sur les genres/tags ne sont pas nécessaires si la relation est propriétaire côté Movie
+            // Sinon, décommente :
+            // genderService.saveOrUpdate(gender);
+            // tagService.saveOrUpdate(tag);
+
+            movieRepository.delete(id);
+        }
+    }
+
     public Movie getMovieById(Long id) {
         return movieRepository.findById(id);
     }
