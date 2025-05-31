@@ -43,8 +43,7 @@ public class RecommendedController {
         }
         List<Movie> movies = recommendedService.fetchColdRecommendations(2 * nb);
         Function<Movie, Double> utilityFunction = movie -> Math
-                .abs(ratingRepository.getAverageRating(movie.getId()) - 2.5)
-                * ratingRepository.getNumberOfRatings(movie.getId()) / 5;
+                .abs(ratingRepository.getAverageRating(movie.getId()) - 2.5) / 2.5;
         ExponentialMechanism selector = new ExponentialMechanism(movies, utilityFunction);
         return selector.selectRandomMovies(nb);
 
