@@ -85,9 +85,9 @@ public class RatingRepository {
 
     public boolean hasNumberOfRatingsAboveLimit(Long id, int maxLimit) {
         List<Long> ids = entityManager.createQuery(
-                        "SELECT r.id FROM Rating r WHERE r.account.id = :accountId", Long.class)
+                "SELECT r.id FROM Rating r WHERE r.account.id = :accountId", Long.class)
                 .setParameter("accountId", id)
-                .setMaxResults(maxLimit)
+                .setMaxResults(maxLimit + 1)
                 .getResultList();
         return ids.size() > maxLimit;
     }
